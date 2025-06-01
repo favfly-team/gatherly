@@ -7,6 +7,7 @@ import { Share2, Workflow, FileDown } from "lucide-react";
 import CreateFlowModal from "./create-flow-modal";
 import flowStore from "@/storage/flow-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
+import { toast } from "sonner";
 
 const Flows = () => {
   const { agent_id } = useParams();
@@ -73,7 +74,16 @@ const FlowCardItem = ({ flow }) => {
           >
             <FileDown />
           </Button>
-          <Button variant="ghost" size="icon" className="[&_svg]:size-5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="[&_svg]:size-5"
+            onClick={() => {
+              const url = `${window.location.origin}/chat/${flow.id}`;
+              navigator.clipboard.writeText(url);
+              toast.success("Flow URL copied to clipboard");
+            }}
+          >
             <Share2 />
           </Button>
         </div>
