@@ -1,0 +1,38 @@
+users [collection]
+├── {userId} [document]
+│   ├── display_name: string
+│   ├── email: string
+│   ├── profile_image: string (URL)
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
+
+workspaces [collection]
+├── {workspaceId} [document]
+│   ├── name: string
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
+
+workspace_members [collection]
+├── {memberId} [document]
+│   ├── workspace_id: string [ref: > workspaces.id]
+│   ├── user_id: string [ref: > users.id]
+│   ├── role: string // "owner" or "member"
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
+
+bots [collection]
+├── {botId} [document]
+│   ├── workspace_id: string [ref: > workspaces.id]
+│   ├── name: string
+│   ├── training_prompt: string
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
+
+flows [collection]
+├── {flowId} [document]
+│   ├── bot_id: string [ref: > bots.id]
+│   ├── messages: array of { sender: string, content: string, timestamp: timestamp }
+│   ├── expires_at: timestamp
+│   ├── pdf_url: string (firestore storage link)
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
