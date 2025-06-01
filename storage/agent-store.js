@@ -3,12 +3,15 @@ import { create } from "zustand";
 import {
   loadAllDataAction,
   createDataAction,
+  updateDataAction,
 } from "@/components/actions/data-actions";
 import sortBy from "sort-by";
+import { toast } from "sonner";
 
 const agentStore = create((set, get) => ({
   agents: [],
   isLoading: true,
+  isUpdating: false,
   error: null,
 
   // ===== LOAD AGENTS =====
@@ -61,10 +64,39 @@ const agentStore = create((set, get) => ({
         agents: [res, ...state.agents],
       }));
 
+      toast.success("Agent created successfully");
+
       return res;
     } catch (error) {
       console.error("Error creating agent:", error.message);
       throw error;
+    }
+  },
+
+  // ===== UPDATE AGENT =====
+  updateAgent: async (agent_id, data) => {
+    try {
+      set({ isUpdating: true });
+      const res = await updateDataAction({
+        table_name: "bots",
+        query: {
+          where: {
+            id: agent_id,
+          },
+          data,
+        },
+      });
+
+      if (res?.error) {
+        throw new Error(res?.error);
+      }
+
+      toast.success("Agent updated successfully");
+    } catch (error) {
+      console.error("Error updating agent:", error.message);
+      throw error;
+    } finally {
+      set({ isUpdating: false });
     }
   },
 }));

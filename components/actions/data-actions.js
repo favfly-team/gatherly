@@ -101,9 +101,19 @@ const loadAllDataAction = async ({ table_name, query }) => {
 };
 
 // ===== LOAD SINGLE DATA ACTION =====
-const loadSingleDataAction = async ({ table_name, query }) => {
+const loadSingleDataAction = async ({ table_name, id, query }) => {
   try {
-    // ===== LOAD SINGLE DATA =====
+    // If id is provided, fetch the document directly by id
+    if (id) {
+      const docRef = doc(db, table_name, id);
+      const docSnap = await getDoc(docRef);
+      const res = docSnap.exists()
+        ? { id: docSnap.id, ...docSnap.data() }
+        : null;
+      return res;
+    }
+
+    // Otherwise, fallback to query-based fetch
     const collectionRef = collection(db, table_name);
     let q = collectionRef;
 
@@ -115,8 +125,8 @@ const loadSingleDataAction = async ({ table_name, query }) => {
     }
 
     const snapshot = await getDocs(q);
-    const doc = snapshot.docs[0];
-    const res = doc ? { id: doc.id, ...doc.data() } : null;
+    const firstDoc = snapshot.docs[0];
+    const res = firstDoc ? { id: firstDoc.id, ...firstDoc.data() } : null;
 
     // ===== RETURN =====
     return res;

@@ -2,10 +2,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Layout = ({ children }) => {
   return (
-    <Tabs defaultValue="flows" className="w-full h-full">
+    <Tabs defaultValue="flows" className="flex flex-col w-full h-full">
       <Header />
 
-      <div className="w-full h-full p-4">{children}</div>
+      <div className="flex-1 w-full p-4">{children}</div>
     </Tabs>
   );
 };

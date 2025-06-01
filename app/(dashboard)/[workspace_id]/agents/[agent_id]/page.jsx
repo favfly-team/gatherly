@@ -1,6 +1,7 @@
 import Layout from "@/components/layout/layout/v3";
 import { TabsContent } from "@/components/ui/tabs";
 import Flows from "@/components/features/flows";
+import PlaygroundChat from "@/components/features/playground";
 
 const AgentPage = () => {
   return (
@@ -8,8 +9,8 @@ const AgentPage = () => {
       <TabsContent value="flows" className="h-full">
         <Flows />
       </TabsContent>
-      <TabsContent value="playground">
-        <div>Playground</div>
+      <TabsContent value="playground" className="h-full">
+        <PlaygroundChat />
       </TabsContent>
     </Layout>
   );
