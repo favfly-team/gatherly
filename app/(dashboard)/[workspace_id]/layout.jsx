@@ -1,12 +1,7 @@
 import LayoutComponent from "@/components/layout/layout/v1";
-import AuthGuard from "@/components/auth/auth-guard";
 
 const Layout = ({ children }) => {
-  return (
-    <AuthGuard>
-      <LayoutComponent>{children}</LayoutComponent>
-    </AuthGuard>
-  );
+  return <LayoutComponent>{children}</LayoutComponent>;
 };
 
 export default Layout;

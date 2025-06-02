@@ -29,13 +29,20 @@ const Sidebar = ({ ...props }) => {
 
   return (
     <SidebarComponent {...props}>
-      <SidebarHeader>
-        <div className="flex items-center p-1">
-          <img
-            src="https://images.prismic.io/favfly2/Z44AIJbqstJ99n2k_FINALLOGOFILE-01-01.png?auto=format,compress"
-            alt=""
-            className="w-auto h-10"
-          />
+      <SidebarHeader className="border-b">
+        <div className="flex items-end py-2 px-4">
+          <div className="flex items-center gap-2">
+            <img
+              src="https://images.prismic.io/favfly2/aD00h7h8WN-LVdrA_GatherlyLogo.png?auto=format,compress"
+              alt="Gatherly Logo"
+              fetchPriority="high"
+              className="w-auto h-10"
+            />
+            <h4 className="text-xl font-bold">Gatherly</h4>
+          </div>
+          <sub className="bottom-[.05em] text-gray-500 dark:text-gray-400">
+            by FavFly
+          </sub>
         </div>
       </SidebarHeader>
       <SidebarContent className="mt-4">

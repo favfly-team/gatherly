@@ -14,6 +14,9 @@ const inter = Inter({
   weights: [400, 500, 600, 700],
 });
 
+// ===== IMPORT AUTH GUARD =====
+import AuthGuard from "@/components/auth/auth-guard";
+
 // ===== GLOBAL METADATA =====
 export const metadata = {
   title: "Gatherly",
@@ -26,7 +29,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.className} antialiased bg-accent overflow-hidden`}
       >
-        {children}
+        <AuthGuard>{children}</AuthGuard>
 
         {/* ======= TOASTER PROVIDER ======= */}
         <Toaster richColors />
