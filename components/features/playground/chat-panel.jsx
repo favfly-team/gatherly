@@ -32,7 +32,7 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <ScrollArea className="h-[calc(100%-100px)]">
+      <ScrollArea className="h-full">
         <div className="p-4 space-y-4">
           {messages.map((msg, i) => (
             <ChatMessage key={i} {...msg} />

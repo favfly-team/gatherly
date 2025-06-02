@@ -9,7 +9,7 @@ export default function PlaygroundChat() {
       <div className="w-1/2 h-full">
         <PromptPanel />
       </div>
-      <div className="w-1/2 h-full">
+      <div className="w-1/2 h-[calc(100vh-90px)]">
         <ChatPanel />
       </div>
     </div>
@@ -34,7 +34,7 @@ export function ChatOnly() {
           by FavFly
         </sub>
       </div>
-      <Card className="w-full h-full">
+      <Card className="w-full h-[calc(100vh-120px)]">
         <ChatPanel />
       </Card>
     </div>
