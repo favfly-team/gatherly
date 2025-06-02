@@ -49,8 +49,8 @@ const agentStore = create((set, get) => ({
         query: {
           data: {
             ...data,
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: Date.now(),
+            updated_at: Date.now(),
           },
         },
       });

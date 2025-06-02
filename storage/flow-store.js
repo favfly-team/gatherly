@@ -52,8 +52,8 @@ const flowStore = create((set, get) => ({
             ...data,
             expires_at,
             messages: [],
-            created_at: new Date(),
-            updated_at: new Date(),
+            created_at: Date.now(),
+            updated_at: Date.now(),
           },
         },
       });

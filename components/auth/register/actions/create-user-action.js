@@ -30,8 +30,8 @@ const createUserAction = async (data) => {
           display_name: name,
           email: email,
           profile_image: "",
-          created_at: new Date(),
-          updated_at: new Date(),
+          created_at: Date.now(),
+          updated_at: Date.now(),
         },
       },
     });
@@ -44,8 +44,8 @@ const createUserAction = async (data) => {
         data: {
           name: company_name,
           slug: workspaceSlug,
-          created_at: new Date(),
-          updated_at: new Date(),
+          created_at: Date.now(),
+          updated_at: Date.now(),
           workspace_members: [userCredential.user.uid],
         },
       },
@@ -59,8 +59,8 @@ const createUserAction = async (data) => {
           workspace_id: workspace.id,
           user_id: userCredential.user.uid,
           role: "owner",
-          created_at: new Date(),
-          updated_at: new Date(),
+          created_at: Date.now(),
+          updated_at: Date.now(),
         },
       },
     });

@@ -3,11 +3,12 @@ import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share2, Workflow, FileDown } from "lucide-react";
+import { Share2, Workflow, FileDown, Copy } from "lucide-react";
 import CreateFlowModal from "./create-flow-modal";
 import flowStore from "@/storage/flow-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const Flows = () => {
   const { agent_id } = useParams();
@@ -25,23 +26,21 @@ const Flows = () => {
     );
   }
 
-  if (flows.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-32 text-muted-foreground">
-        No flows found.
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto">
       <FlowsHeader />
 
-      <div className="space-y-4 mt-4">
-        {flows.map((flow) => (
-          <FlowCardItem key={flow.id} flow={flow} />
-        ))}
-      </div>
+      {flows.length > 0 ? (
+        <div className="space-y-4 mt-4">
+          {flows.map((flow) => (
+            <FlowCardItem key={flow.id} flow={flow} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex justify-center items-center h-32 text-muted-foreground">
+          No flows found.
+        </div>
+      )}
     </div>
   );
 };
@@ -56,6 +55,19 @@ const FlowsHeader = () => {
 };
 
 const FlowCardItem = ({ flow }) => {
+  // ===== COPY ALL CONVERSATION =====
+  const copyAllChatConversation = () => {
+    const messages = flow.messages;
+
+    const conversation = messages.map((message) => {
+      return `${message.role}: ${message.content}`;
+    });
+
+    navigator.clipboard.writeText(conversation.join("\n\n"));
+
+    toast.success("Conversation copied to clipboard");
+  };
+
   return (
     <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg border border-muted bg-white hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">
@@ -70,9 +82,9 @@ const FlowCardItem = ({ flow }) => {
             variant="ghost"
             size="icon"
             className="[&_svg]:size-5"
-            disabled
+            onClick={copyAllChatConversation}
           >
-            <FileDown />
+            <Copy />
           </Button>
           <Button
             variant="ghost"
@@ -91,15 +103,11 @@ const FlowCardItem = ({ flow }) => {
       <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
         <span>
           <span className="font-medium">Date:</span>{" "}
-          {flow.created_at
-            ? new Date(flow.created_at).toLocaleDateString()
-            : "-"}
+          {format(new Date(flow.created_at), "dd/MM/yyyy")}
         </span>
         <span>
           <span className="font-medium">Expiry:</span>{" "}
-          {flow.expires_at
-            ? new Date(flow.expires_at).toLocaleDateString()
-            : "-"}
+          {format(new Date(flow.expires_at), "dd/MM/yyyy")}
         </span>
       </div>
     </Card>
