@@ -6,6 +6,7 @@ import usePlaygroundStore from "@/storage/playground-store";
 import { fetchOpenAIChat } from "@/components/actions/openai";
 import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
+import { promise } from "zod";
 
 export default function ChatInput() {
   // ===== INITIALIZE STATES =====
@@ -67,6 +68,8 @@ export default function ChatInput() {
       }
     } finally {
       setLoading(false);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
       if (inputRef.current) inputRef.current.focus();
     }
   };

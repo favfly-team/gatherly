@@ -4,7 +4,7 @@ import ChatMessage from "./chat-message";
 import ChatInput from "./chat-input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
@@ -13,12 +13,22 @@ export default function ChatPanel() {
   // ===== GET FLOW ID =====
   const { flow_id } = useParams();
 
+  const messagesEndRef = useRef(null);
+
   // ===== LOAD MESSAGES =====
   useEffect(() => {
     if (flow_id) {
       loadMessages(flow_id);
     }
   }, [flow_id]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -30,6 +40,7 @@ export default function ChatPanel() {
 
           {loading && <ChatMessage role="assistant" content="Thinking..." />}
         </div>
+        <div ref={messagesEndRef} />
       </ScrollArea>
       <div className="border-t p-4 w-full">
         <ChatInput />
