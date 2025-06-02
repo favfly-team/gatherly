@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { loadSingleDataAction } from "@/components/actions/data-actions";
+import { updateDataAction } from "@/components/actions/data-actions";
 const usePlaygroundStore = create((set, get) => ({
   systemPrompt: "",
   messages: [],
@@ -22,6 +23,32 @@ const usePlaygroundStore = create((set, get) => ({
 
     set({ systemPrompt: agent?.system_prompt });
     set({ isLoading: false });
+  },
+  loadMessages: async (flow_id) => {
+    const res = await loadSingleDataAction({
+      table_name: "flows",
+      id: flow_id,
+    });
+
+    if (res?.error) {
+      throw res?.error;
+    }
+
+    set({ messages: res?.messages });
+  },
+  updateMessages: async (flow_id, messages) => {
+    const res = await updateDataAction({
+      table_name: "flows",
+      query: { where: { id: flow_id }, data: { messages } },
+    });
+
+    console.log(res);
+
+    if (res?.error) {
+      throw res?.error;
+    }
+
+    set({ messages });
   },
 
   resetChat: () => set({ messages: [] }),

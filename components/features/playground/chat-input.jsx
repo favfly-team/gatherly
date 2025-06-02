@@ -5,21 +5,38 @@ import { Button } from "@/components/ui/button";
 import usePlaygroundStore from "@/storage/playground-store";
 import { fetchOpenAIChat } from "@/components/actions/openai";
 import { Input } from "@/components/ui/input";
+import { useParams } from "next/navigation";
 
 export default function ChatInput() {
   // ===== INITIALIZE STATES =====
-  const { messages, setMessages, systemPrompt, loading, setLoading } =
-    usePlaygroundStore();
+  const {
+    messages,
+    systemPrompt,
+    loading,
+    setLoading,
+    updateMessages,
+    setMessages,
+  } = usePlaygroundStore();
 
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
+
+  // ===== GET FLOW ID =====
+  const { flow_id } = useParams();
 
   // ===== SEND MESSAGE =====
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
     const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
+
+    // ===== UPDATE MESSAGES TO DATABASE =====
+    if (flow_id) {
+      await updateMessages(flow_id, newMessages);
+    } else {
+      setMessages(newMessages);
+    }
+
     setInput("");
     setLoading(true);
     try {
@@ -27,12 +44,27 @@ export default function ChatInput() {
         messages: newMessages,
         systemPrompt,
       });
-      setMessages([...newMessages, { role: "assistant", content: aiReply }]);
+
+      if (flow_id) {
+        await updateMessages(flow_id, [
+          ...newMessages,
+          { role: "assistant", content: aiReply },
+        ]);
+      } else {
+        setMessages([...newMessages, { role: "assistant", content: aiReply }]);
+      }
     } catch (e) {
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: "Sorry, there was an error." },
-      ]);
+      if (flow_id) {
+        await updateMessages(flow_id, [
+          ...newMessages,
+          { role: "assistant", content: "Sorry, there was an error." },
+        ]);
+      } else {
+        setMessages([
+          ...newMessages,
+          { role: "assistant", content: "Sorry, there was an error." },
+        ]);
+      }
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.focus();

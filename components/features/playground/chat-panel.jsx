@@ -3,10 +3,22 @@ import usePlaygroundStore from "@/storage/playground-store";
 import ChatMessage from "./chat-message";
 import ChatInput from "./chat-input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
-  const { messages, loading } = usePlaygroundStore();
+  const { messages, loading, loadMessages } = usePlaygroundStore();
+
+  // ===== GET FLOW ID =====
+  const { flow_id } = useParams();
+
+  // ===== LOAD MESSAGES =====
+  useEffect(() => {
+    if (flow_id) {
+      loadMessages(flow_id);
+    }
+  }, [flow_id]);
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -16,7 +28,7 @@ export default function ChatPanel() {
             <ChatMessage key={i} {...msg} />
           ))}
 
-          {loading && <ChatMessage message="Thinking..." />}
+          {loading && <ChatMessage role="assistant" content="Thinking..." />}
         </div>
       </ScrollArea>
       <div className="border-t p-4 w-full">
