@@ -6,10 +6,11 @@ const usePlaygroundStore = create((set, get) => ({
   messages: [],
   loading: false,
   isLoading: false,
-
+  isDone: false,
   setSystemPrompt: (prompt) => set({ systemPrompt: prompt }),
   setMessages: (messages) => set({ messages }),
   setLoading: (loading) => set({ loading }),
+  setIsDone: (isDone) => set({ isDone }),
   loadSystemPrompt: async (agent_id) => {
     set({ isLoading: true });
     const agent = await loadSingleDataAction({
@@ -51,12 +52,12 @@ const usePlaygroundStore = create((set, get) => ({
     set({ messages });
   },
 
-  resetChat: () => set({ messages: [] }),
+  resetChat: () => set({ messages: [], isDone: false }),
   resetAll: (agent_id) => {
     // load system prompt
     get().loadSystemPrompt(agent_id);
 
-    set({ messages: [] });
+    set({ messages: [], isDone: false });
   },
 }));
 

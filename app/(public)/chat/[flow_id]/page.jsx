@@ -9,14 +9,7 @@ const ChatPage = ({ params }) => {
   const { flow_id } = params;
 
   // ===== INITIALIZE PLAYGROUND STORE =====
-  const {
-    systemPrompt,
-    setSystemPrompt,
-    resetChat,
-    resetAll,
-    isLoading,
-    loadSystemPrompt,
-  } = usePlaygroundStore();
+  const { loadSystemPrompt } = usePlaygroundStore();
 
   const [flow, setFlow] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);

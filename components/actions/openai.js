@@ -17,6 +17,7 @@ export async function fetchOpenAIChat({ messages, systemPrompt }) {
       stream: false,
     }),
   });
+
   if (!res.ok) throw new Error("OpenAI API error");
   const data = await res.json();
   return data.choices?.[0]?.message?.content || "";

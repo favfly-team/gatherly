@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
-  const { messages, loading, loadMessages } = usePlaygroundStore();
+  const { messages, loading, loadMessages, isDone } = usePlaygroundStore();
 
   // ===== GET FLOW ID =====
   const { flow_id } = useParams();

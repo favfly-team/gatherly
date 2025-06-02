@@ -25,7 +25,7 @@ export default function ChatMessage({ role, content }) {
             : "bg-muted text-muted-foreground"
         )}
       >
-        {content}
+        {content.replaceAll("###GATHERLY_DONE###", "")}
       </div>
     </div>
   );
