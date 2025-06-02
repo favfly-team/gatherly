@@ -103,11 +103,15 @@ const FlowCardItem = ({ flow }) => {
       <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
         <span>
           <span className="font-medium">Date:</span>{" "}
-          {format(new Date(flow.created_at), "dd/MM/yyyy")}
+          {flow?.created_at
+            ? format(new Date(flow.created_at), "dd/MM/yyyy")
+            : "-"}
         </span>
         <span>
           <span className="font-medium">Expiry:</span>{" "}
-          {format(new Date(flow.expires_at), "dd/MM/yyyy")}
+          {flow?.expires_at
+            ? format(new Date(flow.expires_at), "dd/MM/yyyy")
+            : "-"}
         </span>
       </div>
     </Card>

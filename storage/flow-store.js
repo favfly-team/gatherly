@@ -42,8 +42,7 @@ const flowStore = create((set, get) => ({
   createFlow: async (data) => {
     try {
       // Set expires_at to 12 hours from now if not provided
-      const expires_at =
-        data.expires_at || new Date(Date.now() + 12 * 60 * 60 * 1000);
+      const expires_at = data.expires_at || Date.now() + 12 * 60 * 60 * 1000;
 
       const res = await createDataAction({
         table_name: "flows",
