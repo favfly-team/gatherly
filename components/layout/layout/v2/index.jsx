@@ -1,8 +1,8 @@
 const Layout = ({ children, title, button }) => {
   return (
-    <div className="w-full">
+    <div className="w-full h-full flex flex-col">
       <Header title={title} button={button} />
-      <div className="w-full h-screen p-4">{children}</div>
+      <div className="w-full h-full p-4">{children}</div>
     </div>
   );
 };

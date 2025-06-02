@@ -2,10 +2,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Layout = ({ children }) => {
   return (
-    <Tabs defaultValue="flows" className="flex flex-col w-full h-full">
+    <Tabs defaultValue="flows" className="flex flex-col bg-white w-full h-full">
       <Header />
 
-      <div className="flex-1 w-full p-4">{children}</div>
+      <div className="w-full h-full p-4">{children}</div>
     </Tabs>
   );
 };
@@ -23,7 +23,7 @@ const Header = () => {
   ];
 
   return (
-    <TabsList className="w-full bg-white rounded-none h-12">
+    <TabsList className="w-full bg-white border-b rounded-none h-12 shrink-0">
       {tabs.map((tab) => (
         <TabsTrigger
           key={tab.value}

@@ -5,7 +5,7 @@ const Layout = ({ children }) => {
   return (
     <SidebarProvider>
       <Sidebar />
-      {children}
+      <div className="w-full h-screen">{children}</div>
     </SidebarProvider>
   );
 };

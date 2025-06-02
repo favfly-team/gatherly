@@ -5,11 +5,11 @@ import { Card } from "@/components/ui/card";
 
 export default function PlaygroundChat() {
   return (
-    <div className="grid grid-cols-12 h-full border rounded-lg bg-background shadow overflow-hidden">
-      <div className="col-span-6">
+    <div className="flex h-full border rounded-lg bg-background shadow">
+      <div className="w-1/2 h-full">
         <PromptPanel />
       </div>
-      <div className="col-span-6">
+      <div className="w-1/2 h-full">
         <ChatPanel />
       </div>
     </div>
