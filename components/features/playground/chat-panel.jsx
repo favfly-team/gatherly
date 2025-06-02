@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
-  const { messages, loading, loadMessages, isDone } = usePlaygroundStore();
+  const { messages, loading, loadMessages, setIsDone } = usePlaygroundStore();
 
   // ===== GET FLOW ID =====
   const { flow_id } = useParams();
@@ -24,6 +24,13 @@ export default function ChatPanel() {
 
   useEffect(() => {
     scrollToBottom();
+
+    if (
+      messages.length > 0 &&
+      messages[messages.length - 1].content.includes("###GATHERLY_DONE###")
+    ) {
+      setIsDone(true);
+    }
   }, [messages]);
 
   const scrollToBottom = () => {
