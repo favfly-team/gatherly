@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ChatInput() {
   // ===== INITIALIZE STATES =====
@@ -26,7 +27,7 @@ export default function ChatInput() {
     When, and only when, you have collected every piece of information you need from the user, end your reply with the single line:
     ###GATHERLY_DONE###
     Before that final line, continue the conversation normally: ask follow-up questions, acknowledge answers, and provide guidance.
-    Do not include “###GATHERLY_DONE###” anywhere until you are completely ready to generate the final document.`;
+    Do not include "###GATHERLY_DONE###" anywhere until you are completely ready to generate the final document.`;
 
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
@@ -106,14 +107,24 @@ export default function ChatInput() {
         sendMessage();
       }}
     >
-      <Input
+      <Textarea
         ref={inputRef}
         autoFocus
-        className="flex-1 border rounded px-3 py-2 bg-background"
+        className="flex-1 border rounded px-3 py-2 bg-background max-h-[260px] resize-none"
         placeholder="Message..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
         disabled={loading}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          } else if (e.key === "Enter" && e.shiftKey) {
+            inputRef.current.style.height = "auto";
+            inputRef.current.style.height =
+              inputRef.current.scrollHeight + "px";
+          }
+        }}
       />
       <Button type="submit" size="icon" disabled={loading || !input.trim()}>
         <Send className="w-4 h-4" />
