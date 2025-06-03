@@ -109,7 +109,7 @@ export default function ChatInput() {
       <Textarea
         ref={inputRef}
         autoFocus
-        className="p-5 bg-background resize-none rounded-3xl focus-visible:ring-0 border-none shadow-none max-h-[160px]"
+        className="py-3 px-4 bg-background resize-none rounded-3xl focus-visible:ring-0 border-none shadow-none max-h-[160px] min-h-0"
         placeholder="Ask anything"
         value={input}
         onChange={(e) => {

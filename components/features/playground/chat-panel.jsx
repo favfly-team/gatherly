@@ -31,7 +31,7 @@ export default function ChatPanel() {
     ) {
       setIsDone(true);
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
