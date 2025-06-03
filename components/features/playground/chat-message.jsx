@@ -27,7 +27,7 @@ export default function ChatMessage({ role, content }) {
         <span
           dangerouslySetInnerHTML={{
             __html: marked.parseInline(
-              content.replaceAll("###GATHERLY_DONE###")
+              content.replaceAll("###GATHERLY_DONE###", "")
             ),
           }}
         />
