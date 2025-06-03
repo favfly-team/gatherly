@@ -1,10 +1,9 @@
 "use client";
 import { useState, useRef } from "react";
-import { Send } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import usePlaygroundStore from "@/storage/playground-store";
 import { fetchOpenAIChat } from "@/components/actions/openai";
-import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
@@ -101,7 +100,7 @@ export default function ChatInput() {
 
   return (
     <form
-      className="flex gap-2"
+      className="flex items-end gap-2 rounded-3xl bg-background border border-border"
       onSubmit={(e) => {
         e.preventDefault();
         sendMessage();
@@ -110,25 +109,33 @@ export default function ChatInput() {
       <Textarea
         ref={inputRef}
         autoFocus
-        className="flex-1 border rounded px-3 py-2 bg-background max-h-[260px] resize-none"
-        placeholder="Message..."
+        className="p-5 bg-background resize-none rounded-3xl focus-visible:ring-0 border-none shadow-none max-h-[160px]"
+        placeholder="Ask anything"
         value={input}
-        onChange={(e) => setInput(e.target.value)}
-        disabled={loading}
+        onChange={(e) => {
+          setInput(e.target.value);
+          inputRef.current.style.height = "auto";
+          inputRef.current.style.height = inputRef.current.scrollHeight + "px";
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
-          } else if (e.key === "Enter" && e.shiftKey) {
             inputRef.current.style.height = "auto";
-            inputRef.current.style.height =
-              inputRef.current.scrollHeight + "px";
           }
         }}
+        disabled={loading}
       />
-      <Button type="submit" size="icon" disabled={loading || !input.trim()}>
-        <Send className="w-4 h-4" />
-      </Button>
+      <div className="flex-1">
+        <Button
+          type="submit"
+          size="icon"
+          disabled={loading || !input.trim()}
+          className="shrink-0 rounded-full [&_svg]:size-5 mb-2 me-2"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </Button>
+      </div>
     </form>
   );
 }

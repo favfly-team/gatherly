@@ -92,3 +92,21 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+::-webkit-scrollbar {
+  width: 6px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.1
+  ); /* Light color for the scrollbar thumb */
+  border-radius: 20px; /* Rounded corners for the scrollbar thumb */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0); /* Light color for the scrollbar track */
+}
