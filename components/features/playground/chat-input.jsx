@@ -92,7 +92,7 @@ export default function ChatInput() {
       <div className="flex gap-2 w-full justify-center">
         <Badge variant="secondary" className="h-8">
           <CheckCircle className="w-4 h-4 mr-2" />
-          Completed
+          Completed! Now you can close the window
         </Badge>
       </div>
     );
