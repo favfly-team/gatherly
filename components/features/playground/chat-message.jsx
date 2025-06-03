@@ -1,6 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { User, Bot } from "lucide-react";
+import { marked } from "marked";
 
 export default function ChatMessage({ role, content }) {
   return (
@@ -25,7 +26,11 @@ export default function ChatMessage({ role, content }) {
             : "bg-muted text-muted-foreground"
         )}
       >
-        {content.replaceAll("###GATHERLY_DONE###", "")}
+        <span
+          dangerouslySetInnerHTML={{
+            __html: marked.parseInline(content),
+          }}
+        />
       </div>
     </div>
   );
