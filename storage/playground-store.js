@@ -7,6 +7,14 @@ const usePlaygroundStore = create((set, get) => ({
   loading: false,
   isLoading: false,
   isDone: false,
+  reset: () =>
+    set({
+      systemPrompt: "",
+      messages: [],
+      loading: false,
+      isLoading: false,
+      isDone: false,
+    }),
   setSystemPrompt: (prompt) => set({ systemPrompt: prompt }),
   setMessages: (messages) => set({ messages }),
   setLoading: (loading) => set({ loading }),

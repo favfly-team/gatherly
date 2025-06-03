@@ -1,7 +1,6 @@
 "use client";
 import PromptPanel from "./prompt-panel";
 import ChatPanel from "./chat-panel";
-import { Card } from "@/components/ui/card";
 
 export default function PlaygroundChat() {
   return (

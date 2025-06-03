@@ -8,10 +8,11 @@ import { useEffect, useRef } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
-  const { messages, loading, loadMessages, setIsDone } = usePlaygroundStore();
+  const { messages, loading, loadMessages, setIsDone, reset } =
+    usePlaygroundStore();
 
   // ===== GET FLOW ID =====
-  const { flow_id } = useParams();
+  const { flow_id, agent_id } = useParams();
 
   const messagesEndRef = useRef(null);
 
@@ -20,7 +21,11 @@ export default function ChatPanel() {
     if (flow_id) {
       loadMessages(flow_id);
     }
-  }, [flow_id]);
+
+    if (agent_id) {
+      reset();
+    }
+  }, [flow_id, agent_id]);
 
   useEffect(() => {
     scrollToBottom();
