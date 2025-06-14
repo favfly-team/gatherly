@@ -20,7 +20,7 @@ import AuthGuard from "@/components/auth/auth-guard";
 // ===== GLOBAL METADATA =====
 export const metadata = {
   title: "Gatherly",
-  description: "Gatherly is a platform for managing leads.",
+  description: "Gatherly is a conversational AI platform.",
 };
 
 export default function RootLayout({ children }) {
