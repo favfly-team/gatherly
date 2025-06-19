@@ -9,6 +9,9 @@ users [collection]
 workspaces [collection]
 ├── {workspaceId} [document]
 │   ├── name: string
+│   ├── slug: string
+│   ├── workspace_members: array [user_id1, user_id2, ...] // For quick access
+│   ├── owner_id: string [ref: > users.id]
 │   ├── created_at: timestamp
 │   ├── updated_at: timestamp
 
@@ -17,6 +20,7 @@ workspace_members [collection]
 │   ├── workspace_id: string [ref: > workspaces.id]
 │   ├── user_id: string [ref: > users.id]
 │   ├── role: string // "owner" or "member"
+│   ├── status: string // "active" or "deactivated" or "removed"
 │   ├── created_at: timestamp
 │   ├── updated_at: timestamp
 

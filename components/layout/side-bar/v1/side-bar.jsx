@@ -38,8 +38,7 @@ const Sidebar = () => {
   const navItemsFooter = [
     {
       title: "Settings",
-      // url: `/${workspace_id}/settings/account`,
-      url: `#`,
+      url: `/${workspace_id}/settings/workspace`,
       icon: <Settings />,
     },
   ];

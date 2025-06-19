@@ -59,6 +59,7 @@ const createUserAction = async (data) => {
           workspace_id: workspace.id,
           user_id: userCredential.user.uid,
           role: "owner",
+          status: "active",
           created_at: Date.now(),
           updated_at: Date.now(),
         },
