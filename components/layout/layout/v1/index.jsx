@@ -1,5 +1,5 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
-import Sidebar from "../../side-bar/sidebar";
+import Sidebar from "../../side-bar/v1/side-bar";
 
 const Layout = ({ children }) => {
   return (

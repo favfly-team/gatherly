@@ -4,7 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/firebase/firebase-client";
 import SyncLoading from "@/components/layout/loading/sync-loading";
-import { loadAllDataAction } from "@/components/actions/data-actions";
+import userStore from "@/storage/user-store";
+import workspaceStore from "@/storage/workspace-store";
 
 export default function AuthGuard({ children }) {
   // ===== USE STATE =====
@@ -16,6 +17,11 @@ export default function AuthGuard({ children }) {
   // ===== USE PATHNAME =====
   const pathname = usePathname();
 
+  // ===== USE STORES =====
+  const { loadUserProfile, clearUser, checkUserExists, createUserProfile } =
+    userStore();
+  const { loadWorkspaces } = workspaceStore();
+
   // ===== PATHS =====
   const paths = ["/login", "/register", "/"];
 
@@ -24,8 +30,11 @@ export default function AuthGuard({ children }) {
   useEffect(() => {
     const auth = getAuth(app);
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        // User is not authenticated
+        clearUser();
+
         if (
           paths.includes(pathname) ||
           publicPaths.some((path) => pathname.startsWith(path))
@@ -36,27 +45,55 @@ export default function AuthGuard({ children }) {
 
         router.replace("/login");
       } else {
-        if (paths.includes(pathname)) {
-          // GET USER INFO AND REDIRECT TO WORKSPACE
-          const workspaces = await loadAllDataAction({
-            table_name: "workspaces",
-            query: {
-              where: {
-                workspace_members: [user.uid],
-              },
-            },
-          });
+        // User is authenticated
+        try {
+          // Check if user profile exists in Firestore
+          const userExists = await checkUserExists(firebaseUser.uid);
 
-          router.replace(`/${workspaces[0].slug}/agents`);
-          return;
+          if (!userExists) {
+            // Create user profile if it doesn't exist
+            await createUserProfile(firebaseUser.uid, {
+              display_name: firebaseUser.displayName || "",
+              email: firebaseUser.email || "",
+              profile_image: firebaseUser.photoURL || "",
+            });
+          } else {
+            // Load existing user profile
+            await loadUserProfile(firebaseUser.uid);
+          }
+
+          if (paths.includes(pathname)) {
+            // Load user's workspaces and redirect to first workspace
+            await loadWorkspaces(firebaseUser.uid);
+
+            // Get workspaces from store after loading
+            const { workspaces } = workspaceStore.getState();
+
+            if (workspaces && workspaces.length > 0) {
+              router.replace(`/${workspaces[0].slug}/agents`);
+              return;
+            }
+
+            return;
+          }
+
+          setLoading(false);
+        } catch (error) {
+          console.error("Error in auth guard:", error);
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     });
 
     return () => unsubscribe();
-  }, [pathname]);
+  }, [
+    pathname,
+    loadUserProfile,
+    clearUser,
+    checkUserExists,
+    createUserProfile,
+    loadWorkspaces,
+  ]);
 
   if (loading) {
     return <SyncLoading className="h-screen" />;
