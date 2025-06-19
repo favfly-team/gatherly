@@ -28,6 +28,14 @@ const Agents = () => {
     );
   }
 
+  if (agents.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full -m-4">
+        <p className="text-muted-foreground">No agents found</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4">
       {agents.map((agent) => (

@@ -68,8 +68,6 @@ const workspaceStore = create((set, get) => ({
         workspaces: [res, ...state.workspaces].sort(sortBy("name")),
       }));
 
-      toast.success("Workspace created successfully");
-
       return res;
     } catch (error) {
       console.error("Error creating workspace:", error.message);

@@ -20,6 +20,7 @@ import { useState } from "react";
 import { LayoutGrid } from "lucide-react";
 import { setCookie } from "@/components/actions/set-cookies";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import CreateWorkspaceModal from "./create-workspace-modal";
 
 const OrgSwitcher = ({ workspaces, workspace_id, isLoading }) => {
   const { isMobile } = useSidebar();
@@ -84,6 +85,9 @@ const OrgSwitcher = ({ workspaces, workspace_id, isLoading }) => {
           </DropdownMenu>
         </SidebarMenuItem>
       </SidebarMenu>
+
+      {/* // ===== Create Workspace Dialog ===== */}
+      <CreateWorkspaceModal isOpen={isOpen} setIsOpen={setIsOpen} />
     </>
   );
 };
