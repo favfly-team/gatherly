@@ -46,11 +46,11 @@ export default function useChat() {
 
         // ===== CREATE FLOW FOR NEW CHATS =====
         if (mode === "new" && messages.length === 0 && agent_id) {
-          const flowName =
-            input.length > 50 ? input.substring(0, 47) + "..." : input;
+          // Create a temporary name - will be updated by the page component
+          const tempFlowName = "New Chat";
 
           const newFlow = await createFlow({
-            name: flowName,
+            name: tempFlowName,
             bot_id: agent_id,
           });
 
