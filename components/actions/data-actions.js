@@ -5,6 +5,7 @@ import {
   doc,
   setDoc,
   updateDoc,
+  deleteDoc,
   getDocs,
   query as firestoreQuery,
   where,
@@ -51,6 +52,22 @@ const updateDataAction = async ({ table_name, query }) => {
 
     // ===== RETURN =====
     return res;
+  } catch (error) {
+    console.error(error);
+    return errorHandler(error);
+  }
+};
+
+// ===== DELETE DATA ACTION =====
+const deleteDataAction = async ({ table_name, query }) => {
+  try {
+    // ===== DELETE DATA =====
+    const { where } = query;
+    const docRef = doc(db, table_name, where.id);
+    await deleteDoc(docRef);
+
+    // ===== RETURN =====
+    return { id: where.id };
   } catch (error) {
     console.error(error);
     return errorHandler(error);
@@ -182,6 +199,7 @@ const findFirstDataAction = async ({ table_name, query }) => {
 export {
   createDataAction,
   updateDataAction,
+  deleteDataAction,
   loadAllDataAction,
   loadSingleDataAction,
   findUniqueDataAction,

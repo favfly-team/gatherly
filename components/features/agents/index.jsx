@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bot, MoreVertical, Pen } from "lucide-react";
+import { Bot, MoreVertical, Pen, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import agentStore from "@/storage/agent-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import DropdownMenu from "@/components/layout/dropdown-menu";
 import RenameAgentModal from "./rename-agent-modal";
+import DeleteAgentModal from "./delete-agent-modal";
 
 const Agents = () => {
   // ======= INITIALIZE PARAMS ========
@@ -50,6 +51,7 @@ const Agents = () => {
 const AgentCardItem = ({ agent }) => {
   // ======= INITIALIZE STATES ========
   const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   // ======= AGENT DATA ========
   const { id, name } = agent;
@@ -63,6 +65,15 @@ const AgentCardItem = ({ agent }) => {
         e.preventDefault();
         e.stopPropagation();
         setIsRenameOpen(true);
+      },
+    },
+    {
+      icon: <Trash2 />,
+      label: "Delete",
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDeleteOpen(true);
       },
     },
   ];
@@ -100,6 +111,13 @@ const AgentCardItem = ({ agent }) => {
         agent={agent}
         isOpen={isRenameOpen}
         setIsOpen={setIsRenameOpen}
+      />
+
+      {/* // ===== DELETE MODAL ===== */}
+      <DeleteAgentModal
+        agent={agent}
+        isOpen={isDeleteOpen}
+        setIsOpen={setIsDeleteOpen}
       />
     </>
   );

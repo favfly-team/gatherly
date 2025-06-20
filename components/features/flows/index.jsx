@@ -10,9 +10,11 @@ import {
   Copy,
   MoreVertical,
   Pen,
+  Trash2,
 } from "lucide-react";
 import CreateFlowModal from "./create-flow-modal";
 import RenameFlowModal from "./rename-flow-modal";
+import DeleteFlowModal from "./delete-flow-modal";
 import DropdownMenu from "@/components/layout/dropdown-menu";
 import flowStore from "@/storage/flow-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
@@ -66,6 +68,7 @@ const FlowsHeader = () => {
 const FlowCardItem = ({ flow }) => {
   // ======= INITIALIZE STATES ========
   const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   // ===== COPY ALL CONVERSATION =====
   const copyAllChatConversation = () => {
@@ -89,6 +92,15 @@ const FlowCardItem = ({ flow }) => {
         e.preventDefault();
         e.stopPropagation();
         setIsRenameOpen(true);
+      },
+    },
+    {
+      icon: <Trash2 />,
+      label: "Delete",
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDeleteOpen(true);
       },
     },
   ];
@@ -154,6 +166,13 @@ const FlowCardItem = ({ flow }) => {
         flow={flow}
         isOpen={isRenameOpen}
         setIsOpen={setIsRenameOpen}
+      />
+
+      {/* // ===== DELETE MODAL ===== */}
+      <DeleteFlowModal
+        flow={flow}
+        isOpen={isDeleteOpen}
+        setIsOpen={setIsDeleteOpen}
       />
     </>
   );

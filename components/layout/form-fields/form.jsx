@@ -15,6 +15,7 @@ const Form = forwardRef(
       className,
       groupClassName,
       submitButtonClassName,
+      submitVariant,
       buttonChildren,
     },
     ref
@@ -57,6 +58,7 @@ const Form = forwardRef(
               form={form}
               label={submitLabel}
               className={submitButtonClassName}
+              variant={submitVariant}
             />
             {buttonChildren && buttonChildren}
           </div>

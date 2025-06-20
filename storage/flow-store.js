@@ -4,6 +4,7 @@ import {
   loadAllDataAction,
   createDataAction,
   updateDataAction,
+  deleteDataAction,
 } from "@/components/actions/data-actions";
 import sortBy from "sort-by";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ const flowStore = create((set, get) => ({
   flows: [],
   isLoading: true,
   isUpdating: false,
+  isDeleting: false,
   error: null,
 
   // ===== LOAD FLOWS =====
@@ -100,6 +102,37 @@ const flowStore = create((set, get) => ({
       throw error;
     } finally {
       set({ isUpdating: false });
+    }
+  },
+
+  // ===== DELETE FLOW =====
+  deleteFlow: async (flow_id) => {
+    try {
+      set({ isDeleting: true });
+      const res = await deleteDataAction({
+        table_name: "flows",
+        query: {
+          where: {
+            id: flow_id,
+          },
+        },
+      });
+
+      if (res?.error) {
+        throw new Error(res?.error);
+      }
+
+      // Remove flow from local state
+      set((state) => ({
+        flows: state.flows.filter((flow) => flow.id !== flow_id),
+      }));
+
+      toast.success("Flow deleted successfully");
+    } catch (error) {
+      console.error("Error deleting flow:", error.message);
+      throw error;
+    } finally {
+      set({ isDeleting: false });
     }
   },
 }));
