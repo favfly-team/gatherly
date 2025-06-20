@@ -3,12 +3,10 @@ import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Download } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import usePlaygroundStore from "@/storage/playground-store";
 import ChatMessage from "./chat-message";
 import ChatInput from "./chat-input";
-import { Button } from "@/components/ui/button";
-import { downloadChatPDF } from "@/lib/pdf-generator";
 
 export default function ChatContainer({
   mode = "existing", // "new" | "existing"
@@ -72,16 +70,6 @@ export default function ChatContainer({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // ===== HANDLE PDF DOWNLOAD =====
-  const handleDownloadPDF = async () => {
-    // Include initial message if it exists
-    const allMessages = initialMessage
-      ? [{ role: "assistant", content: initialMessage }, ...messages]
-      : [...messages];
-
-    await downloadChatPDF(allMessages, `gatherly-chat-${flow_id || "new"}`);
-  };
-
   const initialBotMessage = {
     role: "assistant",
     content: initialMessage,
@@ -108,15 +96,6 @@ export default function ChatContainer({
               <CheckCircle className="w-4 h-4 mr-2" />
               Completed! Now you can close the window
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="w-4 h-4" />
-              Download Chat
-            </Button>
           </div>
         ) : (
           <ChatInput

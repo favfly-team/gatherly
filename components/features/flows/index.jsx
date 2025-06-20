@@ -21,6 +21,7 @@ import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { downloadChatPDF } from "@/lib/pdf-generator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Flows = () => {
   const { agent_id } = useParams();
@@ -43,11 +44,13 @@ const Flows = () => {
       <FlowsHeader />
 
       {flows.length > 0 ? (
-        <div className="space-y-4 mt-4">
-          {flows.map((flow) => (
-            <FlowCardItem key={flow.id} flow={flow} />
-          ))}
-        </div>
+        <ScrollArea className="h-[calc(100vh-10rem)]">
+          <div className="space-y-4 mt-4">
+            {flows.map((flow) => (
+              <FlowCardItem key={flow.id} flow={flow} />
+            ))}
+          </div>
+        </ScrollArea>
       ) : (
         <div className="flex justify-center items-center h-32 text-muted-foreground">
           No flows found.
@@ -59,7 +62,7 @@ const Flows = () => {
 
 const FlowsHeader = () => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between pb-4 bg-white">
       <h3 className="text-2xl font-bold">Flows</h3>
       <CreateFlowModal />
     </div>

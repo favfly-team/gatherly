@@ -12,6 +12,7 @@ import RenameAgentModal from "./rename-agent-modal";
 import DeleteAgentModal from "./delete-agent-modal";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Agents = () => {
   // ======= INITIALIZE PARAMS ========
@@ -42,10 +43,14 @@ const Agents = () => {
   }
 
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
-      {agents.map((agent) => (
-        <AgentCardItem key={agent.id} agent={agent} />
-      ))}
+    <div className="max-w-2xl mx-auto">
+      <ScrollArea className="h-[calc(100vh-10rem)]">
+        <div className="space-y-4">
+          {agents.map((agent) => (
+            <AgentCardItem key={agent.id} agent={agent} />
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
