@@ -20,6 +20,7 @@ import flowStore from "@/storage/flow-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { downloadChatPDF } from "@/lib/pdf-generator";
 
 const Flows = () => {
   const { agent_id } = useParams();
@@ -69,6 +70,7 @@ const FlowCardItem = ({ flow }) => {
   // ======= INITIALIZE STATES ========
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // ===== COPY ALL CONVERSATION =====
   const copyAllChatConversation = () => {
@@ -81,6 +83,30 @@ const FlowCardItem = ({ flow }) => {
     navigator.clipboard.writeText(conversation.join("\n\n"));
 
     toast.success("Conversation copied to clipboard");
+  };
+
+  // ===== DOWNLOAD PDF =====
+  const handleDownloadPDF = async () => {
+    try {
+      setIsDownloading(true);
+
+      // Make sure we have messages to download
+      if (!flow.messages || flow.messages.length === 0) {
+        toast.error("No messages to download");
+        return;
+      }
+
+      // Clean messages to remove any GATHERLY_DONE markers
+      const messages = flow.messages;
+
+      await downloadChatPDF(messages, `gatherly-chat-${flow.id}`);
+      toast.success("Chat downloaded as PDF");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to download PDF");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   // ======= DROPDOWN MENU ITEMS ========
@@ -121,8 +147,19 @@ const FlowCardItem = ({ flow }) => {
               size="icon"
               className="[&_svg]:size-5"
               onClick={copyAllChatConversation}
+              title="Copy conversation"
             >
               <Copy />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="[&_svg]:size-5"
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
+              title="Download as PDF"
+            >
+              <FileDown />
             </Button>
             <Button
               variant="ghost"
@@ -133,6 +170,7 @@ const FlowCardItem = ({ flow }) => {
                 navigator.clipboard.writeText(url);
                 toast.success("Flow URL copied to clipboard");
               }}
+              title="Share flow"
             >
               <Share2 />
             </Button>
