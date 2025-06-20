@@ -3,6 +3,7 @@ import { loadSingleDataAction } from "@/components/actions/data-actions";
 import { updateDataAction } from "@/components/actions/data-actions";
 const usePlaygroundStore = create((set, get) => ({
   systemPrompt: "",
+  initialMessage: "",
   messages: [],
   loading: false,
   isLoading: false,
@@ -29,8 +30,8 @@ const usePlaygroundStore = create((set, get) => ({
     if (agent?.error) {
       throw new Error(agent?.error);
     }
-
     set({ systemPrompt: agent?.system_prompt });
+    set({ initialMessage: agent?.initial_message });
     set({ isLoading: false });
   },
   loadMessages: async (flow_id) => {
@@ -70,6 +71,7 @@ const usePlaygroundStore = create((set, get) => ({
       }
 
       set({ systemPrompt: agent?.system_prompt || "" });
+      set({ initialMessage: agent?.initial_message || "" });
     }
 
     set({ messages: flow?.messages || [] });
@@ -80,8 +82,6 @@ const usePlaygroundStore = create((set, get) => ({
       table_name: "flows",
       query: { where: { id: flow_id }, data: { messages } },
     });
-
-    console.log(res);
 
     if (res?.error) {
       throw res?.error;

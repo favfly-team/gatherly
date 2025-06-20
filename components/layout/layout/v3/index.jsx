@@ -20,6 +20,10 @@ const Header = () => {
       value: "playground",
       label: "Playground",
     },
+    {
+      value: "settings",
+      label: "Settings",
+    },
   ];
 
   return (

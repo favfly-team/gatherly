@@ -46,7 +46,7 @@ const flowStore = create((set, get) => ({
   // ===== CREATE FLOW =====
   createFlow: async (data) => {
     try {
-      // Set expires_at to 12 hours from now if not provided
+      // ===== SET EXPIRES AT =====
       const expires_at = data.expires_at || Date.now() + 12 * 60 * 60 * 1000;
 
       const res = await createDataAction({
@@ -66,7 +66,7 @@ const flowStore = create((set, get) => ({
         throw new Error(res?.error);
       }
 
-      // Update flows list
+      // ===== UPDATE FLOWS LIST =====
       set((state) => ({
         flows: [res, ...state.flows],
       }));

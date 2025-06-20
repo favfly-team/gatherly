@@ -35,16 +35,12 @@ export default function useChat() {
       if (!input?.trim() || loading) return false;
 
       const userMessage = { role: "user", content: input };
-      const newMessages = [...messages, userMessage];
       let currentFlowId = flow_id;
 
       try {
-        // ===== ADD USER MESSAGE IMMEDIATELY =====
-        if (currentFlowId) {
-          await updateMessages(currentFlowId, newMessages);
-        } else {
-          setMessages(newMessages);
-        }
+        // ===== ADD USER MESSAGE TO LOCAL STATE IMMEDIATELY =====
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages); // Update local state first for UI responsiveness
 
         setLoading(true);
 
@@ -60,10 +56,14 @@ export default function useChat() {
 
           currentFlowId = newFlow.id;
 
+          // ===== NOTIFY PARENT COMPONENT =====
           if (onFlowCreated) {
             onFlowCreated(newFlow.id);
           }
+        }
 
+        // ===== UPDATE MESSAGES IN DATABASE =====
+        if (currentFlowId) {
           await updateMessages(currentFlowId, newMessages);
         }
 
@@ -73,16 +73,16 @@ export default function useChat() {
           systemPrompt: `${DEFAULT_PROMPT}\n\n${systemPrompt}`,
         });
 
+        // ===== UPDATE LOCAL STATE WITH AI RESPONSE =====
         const finalMessages = [
           ...newMessages,
           { role: "assistant", content: aiReply },
         ];
+        setMessages(finalMessages); // Update local state first
 
-        // ===== UPDATE MESSAGES =====
+        // ===== UPDATE DATABASE WITH AI RESPONSE =====
         if (currentFlowId) {
           await updateMessages(currentFlowId, finalMessages);
-        } else {
-          setMessages(finalMessages);
         }
 
         // ===== CHECK FOR COMPLETION =====
@@ -93,15 +93,23 @@ export default function useChat() {
         return true;
       } catch (error) {
         console.error("Error sending message:", error);
-        const errorMessages = [
-          ...newMessages,
-          { role: "assistant", content: "Sorry, there was an error." },
-        ];
 
+        // ===== ERROR HANDLING =====
+        const errorMessage = {
+          role: "assistant",
+          content: "Sorry, there was an error.",
+        };
+
+        // ===== UPDATE LOCAL STATE WITH ERROR =====
+        setMessages([...messages, userMessage, errorMessage]);
+
+        // ===== UPDATE DATABASE WITH ERROR =====
         if (currentFlowId) {
-          await updateMessages(currentFlowId, errorMessages);
-        } else {
-          setMessages(errorMessages);
+          await updateMessages(currentFlowId, [
+            ...messages,
+            userMessage,
+            errorMessage,
+          ]);
         }
 
         return false;

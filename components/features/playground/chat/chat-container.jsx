@@ -22,6 +22,7 @@ export default function ChatContainer({
     reset,
     loadSystemPrompt,
     isDone,
+    initialMessage,
   } = usePlaygroundStore();
 
   // ===== GET PARAMS =====
@@ -39,6 +40,10 @@ export default function ChatContainer({
         reset();
         loadSystemPrompt(effectiveAgentId);
       }
+    } else if (mode === "new" && effectiveAgentId) {
+      // ===== RESET AND LOAD SYSTEM PROMPT FOR NEW CHATS =====
+      reset();
+      loadSystemPrompt(effectiveAgentId);
     }
   }, [
     mode,
@@ -58,7 +63,6 @@ export default function ChatContainer({
       messages[messages.length - 1].content.includes("###GATHERLY_DONE###")
     ) {
       setIsDone(true);
-    } else {
     }
   }, [messages, loading, setIsDone]);
 
@@ -66,36 +70,19 @@ export default function ChatContainer({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // ===== COMPLETED STATE =====
-  if (isDone) {
-    return (
-      <div className="flex flex-col h-full w-full">
-        <ScrollArea className="h-full">
-          <div className="space-y-4 max-w-screen-md mx-auto py-4">
-            {messages.map((msg, i) => (
-              <ChatMessage key={i} {...msg} />
-            ))}
-          </div>
-          <div ref={messagesEndRef} />
-        </ScrollArea>
-        <div className="max-w-screen-md mx-auto w-full">
-          <div className="flex gap-2 w-full justify-center">
-            <Badge variant="secondary" className="h-8">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Completed! Now you can close the window
-            </Badge>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const initialBotMessage = {
+    role: "assistant",
+    content: initialMessage,
+  };
+
+  console.log(initialBotMessage);
 
   // ===== MAIN CHAT INTERFACE =====
   return (
     <div className="flex flex-col h-full w-full">
       <ScrollArea className="h-full">
         <div className="space-y-4 max-w-screen-md mx-auto py-4">
-          {messages.map((msg, i) => (
+          {[initialBotMessage, ...messages].map((msg, i) => (
             <ChatMessage key={i} {...msg} />
           ))}
 
@@ -105,11 +92,20 @@ export default function ChatContainer({
       </ScrollArea>
 
       <div className="max-w-screen-md mx-auto w-full">
-        <ChatInput
-          mode={mode}
-          agent_id={effectiveAgentId}
-          onFlowCreated={onFlowCreated}
-        />
+        {isDone ? (
+          <div className="flex gap-2 w-full justify-center">
+            <Badge variant="secondary" className="h-8">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Completed! Now you can close the window
+            </Badge>
+          </div>
+        ) : (
+          <ChatInput
+            mode={mode}
+            agent_id={effectiveAgentId}
+            onFlowCreated={onFlowCreated}
+          />
+        )}
       </div>
     </div>
   );

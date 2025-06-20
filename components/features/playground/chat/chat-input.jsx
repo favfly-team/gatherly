@@ -19,8 +19,12 @@ export default function ChatInput({
   const { isDone } = usePlaygroundStore();
   const { flow_id } = useParams();
 
+  const defaultInputMessage = "Hi, start the conversation";
+
   // ===== LOCAL STATES =====
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(
+    mode === "existing" ? "" : defaultInputMessage
+  );
   const [isCreatingFlow, setIsCreatingFlow] = useState(false);
   const inputRef = useRef(null);
 
@@ -109,7 +113,7 @@ export default function ChatInput({
         ref={inputRef}
         autoFocus
         className="py-3 px-4 bg-background resize-none rounded-3xl focus-visible:ring-0 border-none shadow-none max-h-[160px] min-h-0"
-        placeholder="Ask anything"
+        placeholder="Type message..."
         value={input}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}

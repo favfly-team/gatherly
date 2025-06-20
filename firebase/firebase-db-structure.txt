@@ -28,14 +28,16 @@ bots [collection]
 ├── {botId} [document]
 │   ├── workspace_id: string [ref: > workspaces.id]
 │   ├── name: string
-│   ├── training_prompt: string
+│   ├── system_prompt: string
+│   ├── initial_message: string // Optional initial message for new chats
 │   ├── created_at: timestamp
 │   ├── updated_at: timestamp
 
 flows [collection]
 ├── {flowId} [document]
 │   ├── bot_id: string [ref: > bots.id]
-│   ├── messages: array of { sender: string, content: string, timestamp: timestamp }
+│   ├── name: string
+│   ├── messages: array of { role: string, content: string }
 │   ├── expires_at: timestamp
 │   ├── pdf_url: string (firestore storage link)
 │   ├── created_at: timestamp

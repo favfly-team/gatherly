@@ -26,12 +26,14 @@ export default function ChatMessage({ role, content }) {
       >
         <span
           dangerouslySetInnerHTML={{
-            __html: marked
-              .parseInline(content?.replaceAll("###GATHERLY_DONE###", ""))
-              .replace(
-                /<a href="(.*?)"/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer"'
-              ),
+            __html: content
+              ? marked
+                  ?.parseInline(content?.replaceAll("###GATHERLY_DONE###", ""))
+                  ?.replace(
+                    /<a href="(.*?)"/g,
+                    '<a href="$1" target="_blank" rel="noopener noreferrer"'
+                  )
+              : "",
           }}
         />
       </div>
