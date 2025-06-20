@@ -28,14 +28,13 @@ const TeamManagement = () => {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [currentMemberInfo, setCurrentMemberInfo] = useState(null);
 
   // ======= LOAD DATA ========
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get workspace by slug
+        // Get workspace by slug to get the workspace ID
         const workspaces = await loadAllDataAction({
           table_name: "workspaces",
           query: {
@@ -46,11 +45,8 @@ const TeamManagement = () => {
         });
 
         if (workspaces && workspaces.length > 0) {
-          const workspace = workspaces[0];
-          setCurrentWorkspace(workspace);
-
-          // Load workspace members
-          await loadWorkspaceMembers(workspace.id);
+          // Load workspace members using the workspace ID
+          await loadWorkspaceMembers(workspaces[0].id);
         }
       } catch (error) {
         console.error("Error loading workspace data:", error);
