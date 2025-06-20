@@ -8,22 +8,29 @@ import { useEffect, useRef } from "react";
 
 export default function ChatPanel() {
   // ===== INITIALIZE STATES =====
-  const { messages, loading, loadMessages, setIsDone, reset } =
-    usePlaygroundStore();
+  const {
+    messages,
+    loading,
+    loadMessagesAndSystemPrompt,
+    setIsDone,
+    reset,
+    loadSystemPrompt,
+  } = usePlaygroundStore();
 
   // ===== GET FLOW ID =====
   const { flow_id, agent_id } = useParams();
 
   const messagesEndRef = useRef(null);
 
-  // ===== LOAD MESSAGES =====
+  // ===== LOAD MESSAGES AND SYSTEM PROMPT =====
   useEffect(() => {
     if (flow_id) {
-      loadMessages(flow_id);
+      loadMessagesAndSystemPrompt(flow_id);
     }
 
     if (agent_id) {
       reset();
+      loadSystemPrompt(agent_id);
     }
   }, [flow_id, agent_id]);
 

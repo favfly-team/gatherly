@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bot, MoreVertical, Pen, Trash2 } from "lucide-react";
+import { Bot, MoreVertical, Pen, Share, Share2, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import agentStore from "@/storage/agent-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import DropdownMenu from "@/components/layout/dropdown-menu";
 import RenameAgentModal from "./rename-agent-modal";
 import DeleteAgentModal from "./delete-agent-modal";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Agents = () => {
   // ======= INITIALIZE PARAMS ========
@@ -40,7 +42,7 @@ const Agents = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-2xl mx-auto">
       {agents.map((agent) => (
         <AgentCardItem key={agent.id} agent={agent} />
       ))}
@@ -78,15 +80,22 @@ const AgentCardItem = ({ agent }) => {
     },
   ];
 
+  // ======= SHARE AGENT ========
+  const shareAgent = () => {
+    const url = `${window.location.origin}/chatbot/${id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Chatbot URL copied");
+  };
+
   return (
     <>
       <Link href={`agents/${id}`} className="block">
         <Card className="hover:bg-white/80 transition-colors relative">
-          <CardHeader className="flex-row items-center gap-2 p-4">
-            <i className="size-10 rounded-full bg-muted-foreground/20 flex items-center justify-center shrink-0">
+          <CardHeader className="flex-row items-center gap-4 p-4 space-y-0">
+            <i className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0">
               <Bot />
             </i>
-            <CardTitle className="flex-1">{name}</CardTitle>
+            <CardTitle className="flex-1 text-lg capitalize">{name}</CardTitle>
 
             {/* // ===== DROPDOWN MENU ===== */}
             <div
@@ -94,8 +103,17 @@ const AgentCardItem = ({ agent }) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="ml-auto"
+              className="ml-auto flex items-center gap-2"
             >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 p-0"
+                onClick={shareAgent}
+              >
+                <Share2 />
+              </Button>
+
               <DropdownMenu
                 items={dropdownItems}
                 trigger={<MoreVertical className="h-4 w-4" />}

@@ -45,6 +45,36 @@ const usePlaygroundStore = create((set, get) => ({
 
     set({ messages: res?.messages });
   },
+  loadMessagesAndSystemPrompt: async (flow_id) => {
+    set({ isLoading: true });
+
+    // Load flow data
+    const flow = await loadSingleDataAction({
+      table_name: "flows",
+      id: flow_id,
+    });
+
+    if (flow?.error) {
+      throw flow?.error;
+    }
+
+    // Load agent data using bot_id from flow
+    if (flow?.bot_id) {
+      const agent = await loadSingleDataAction({
+        table_name: "bots",
+        id: flow.bot_id,
+      });
+
+      if (agent?.error) {
+        throw new Error(agent?.error);
+      }
+
+      set({ systemPrompt: agent?.system_prompt || "" });
+    }
+
+    set({ messages: flow?.messages || [] });
+    set({ isLoading: false });
+  },
   updateMessages: async (flow_id, messages) => {
     const res = await updateDataAction({
       table_name: "flows",
