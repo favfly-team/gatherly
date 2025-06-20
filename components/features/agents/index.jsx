@@ -85,13 +85,6 @@ const AgentCardItem = ({ agent }) => {
     },
   ];
 
-  // ======= SHARE AGENT ========
-  const shareAgent = () => {
-    const url = `${window.location.origin}/chatbot/${id}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Chatbot URL copied");
-  };
-
   return (
     <>
       <Link href={`agents/${id}`} className="block">
@@ -114,7 +107,7 @@ const AgentCardItem = ({ agent }) => {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 p-0"
-                onClick={shareAgent}
+                onClick={() => handleShareAgent(id)}
               >
                 <Share2 />
               </Button>
@@ -144,6 +137,13 @@ const AgentCardItem = ({ agent }) => {
       />
     </>
   );
+};
+
+// ======= SHARE AGENT ========
+export const handleShareAgent = (id) => {
+  const url = `${window.location.origin}/chat?agent_id=${id}`;
+  navigator.clipboard.writeText(url);
+  toast.success("Chatbot URL copied");
 };
 
 export default Agents;

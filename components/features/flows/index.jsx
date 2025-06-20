@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { downloadChatPDF } from "@/lib/pdf-generator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { handleShareAgent } from "../agents";
 
 const Flows = () => {
   const { agent_id } = useParams();
@@ -61,10 +62,24 @@ const Flows = () => {
 };
 
 const FlowsHeader = () => {
+  // ======= INITIALIZE PARAMS ========
+  const { agent_id } = useParams();
+
   return (
     <div className="flex items-center justify-between pb-4 bg-white">
       <h3 className="text-2xl font-bold">Flows</h3>
-      <CreateFlowModal />
+
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleShareAgent(agent_id)}
+        >
+          <Share2 /> Share Bot
+        </Button>
+
+        <CreateFlowModal />
+      </div>
     </div>
   );
 };
