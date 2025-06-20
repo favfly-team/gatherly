@@ -1,6 +1,6 @@
 "use client";
 import PromptPanel from "./prompt-panel";
-import ChatPanel from "./chat-panel";
+import ChatPanel from "./chat/chat-panel";
 
 export default function PlaygroundChat() {
   return (
@@ -16,7 +16,7 @@ export default function PlaygroundChat() {
 }
 
 // ChatOnly: just the chat window, no prompt panel
-export function ChatOnly() {
+export function ChatOnly({ ...props }) {
   return (
     <div className="bg-background">
       <div className="w-full h-screen flex flex-col items-center relative">
@@ -33,7 +33,7 @@ export function ChatOnly() {
 
         {/* Chat Panel */}
         <div className="w-full h-full p-4">
-          <ChatPanel />
+          <ChatPanel {...props} />
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
-const ChatPage = () => {
-  return (
-    <div>
-      <h1>Chat Page</h1>
-    </div>
-  );
+import NewChat from "@/components/features/playground/chat/new-chat";
+
+const ChatPage = ({ searchParams }) => {
+  const { agent_id } = searchParams;
+
+  return <NewChat agent_id={agent_id} />;
 };
 
 export default ChatPage;
