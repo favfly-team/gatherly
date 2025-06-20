@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
-import { Bot } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bot, MoreVertical, Pen } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import agentStore from "@/storage/agent-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
+import DropdownMenu from "@/components/layout/dropdown-menu";
+import RenameAgentModal from "./rename-agent-modal";
 
 const Agents = () => {
   // ======= INITIALIZE PARAMS ========
@@ -37,7 +39,7 @@ const Agents = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4">
+    <div className="space-y-4">
       {agents.map((agent) => (
         <AgentCardItem key={agent.id} agent={agent} />
       ))}
@@ -46,19 +48,60 @@ const Agents = () => {
 };
 
 const AgentCardItem = ({ agent }) => {
+  // ======= INITIALIZE STATES ========
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+
+  // ======= AGENT DATA ========
   const { id, name } = agent;
 
+  // ======= DROPDOWN MENU ITEMS ========
+  const dropdownItems = [
+    {
+      icon: <Pen />,
+      label: "Rename",
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsRenameOpen(true);
+      },
+    },
+  ];
+
   return (
-    <Link href={`agents/${id}`}>
-      <Card className="aspect-square hover:bg-white/80 transition-colors">
-        <CardHeader className="flex justify-center items-center gap-2 p-4 h-full">
-          <i className="size-10 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-            <Bot />
-          </i>
-          <CardTitle>{name}</CardTitle>
-        </CardHeader>
-      </Card>
-    </Link>
+    <>
+      <Link href={`agents/${id}`} className="block">
+        <Card className="hover:bg-white/80 transition-colors relative">
+          <CardHeader className="flex-row items-center gap-2 p-4">
+            <i className="size-10 rounded-full bg-muted-foreground/20 flex items-center justify-center shrink-0">
+              <Bot />
+            </i>
+            <CardTitle className="flex-1">{name}</CardTitle>
+
+            {/* // ===== DROPDOWN MENU ===== */}
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="ml-auto"
+            >
+              <DropdownMenu
+                items={dropdownItems}
+                trigger={<MoreVertical className="h-4 w-4" />}
+                triggerClassName="p-2 hover:bg-muted rounded-md"
+              />
+            </div>
+          </CardHeader>
+        </Card>
+      </Link>
+
+      {/* // ===== RENAME MODAL ===== */}
+      <RenameAgentModal
+        agent={agent}
+        isOpen={isRenameOpen}
+        setIsOpen={setIsRenameOpen}
+      />
+    </>
   );
 };
 

@@ -1,10 +1,19 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share2, Workflow, FileDown, Copy } from "lucide-react";
+import {
+  Share2,
+  Workflow,
+  FileDown,
+  Copy,
+  MoreVertical,
+  Pen,
+} from "lucide-react";
 import CreateFlowModal from "./create-flow-modal";
+import RenameFlowModal from "./rename-flow-modal";
+import DropdownMenu from "@/components/layout/dropdown-menu";
 import flowStore from "@/storage/flow-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
@@ -55,6 +64,9 @@ const FlowsHeader = () => {
 };
 
 const FlowCardItem = ({ flow }) => {
+  // ======= INITIALIZE STATES ========
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+
   // ===== COPY ALL CONVERSATION =====
   const copyAllChatConversation = () => {
     const messages = flow.messages;
@@ -68,53 +80,82 @@ const FlowCardItem = ({ flow }) => {
     toast.success("Conversation copied to clipboard");
   };
 
+  // ======= DROPDOWN MENU ITEMS ========
+  const dropdownItems = [
+    {
+      icon: <Pen />,
+      label: "Rename",
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsRenameOpen(true);
+      },
+    },
+  ];
+
   return (
-    <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg border border-muted bg-white hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <i className="p-2 rounded-full bg-muted-foreground/10 text-primary">
-            <Workflow />
-          </i>
-          <span className="font-semibold text-lg">{flow.name}</span>
+    <>
+      <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg border border-muted bg-white hover:shadow-lg transition-shadow">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <i className="p-2 rounded-full bg-muted-foreground/10 text-primary">
+              <Workflow />
+            </i>
+            <span className="font-semibold text-lg">{flow.name}</span>
+          </div>
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="[&_svg]:size-5"
+              onClick={copyAllChatConversation}
+            >
+              <Copy />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="[&_svg]:size-5"
+              onClick={() => {
+                const url = `${window.location.origin}/chat/${flow.id}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Flow URL copied to clipboard");
+              }}
+            >
+              <Share2 />
+            </Button>
+
+            {/* // ===== DROPDOWN MENU ===== */}
+            <DropdownMenu
+              items={dropdownItems}
+              trigger={<MoreVertical className="h-4 w-4" />}
+              triggerClassName="p-2 hover:bg-muted rounded-md"
+            />
+          </div>
         </div>
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="[&_svg]:size-5"
-            onClick={copyAllChatConversation}
-          >
-            <Copy />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="[&_svg]:size-5"
-            onClick={() => {
-              const url = `${window.location.origin}/chat/${flow.id}`;
-              navigator.clipboard.writeText(url);
-              toast.success("Flow URL copied to clipboard");
-            }}
-          >
-            <Share2 />
-          </Button>
+        <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
+          <span>
+            <span className="font-medium">Date:</span>{" "}
+            {flow?.created_at
+              ? format(new Date(flow.created_at), "dd/MM/yyyy")
+              : "-"}
+          </span>
+          <span>
+            <span className="font-medium">Expiry:</span>{" "}
+            {flow?.expires_at
+              ? format(new Date(flow.expires_at), "dd/MM/yyyy")
+              : "-"}
+          </span>
         </div>
-      </div>
-      <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
-        <span>
-          <span className="font-medium">Date:</span>{" "}
-          {flow?.created_at
-            ? format(new Date(flow.created_at), "dd/MM/yyyy")
-            : "-"}
-        </span>
-        <span>
-          <span className="font-medium">Expiry:</span>{" "}
-          {flow?.expires_at
-            ? format(new Date(flow.expires_at), "dd/MM/yyyy")
-            : "-"}
-        </span>
-      </div>
-    </Card>
+      </Card>
+
+      {/* // ===== RENAME MODAL ===== */}
+      <RenameFlowModal
+        flow={flow}
+        isOpen={isRenameOpen}
+        setIsOpen={setIsRenameOpen}
+      />
+    </>
   );
 };
 

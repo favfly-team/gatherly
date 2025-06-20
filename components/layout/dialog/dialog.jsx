@@ -4,6 +4,7 @@ import {
 } from "@/components/ui/dialog";
 import Header from "./components/header";
 import TriggerButton from "./components/trigger-button";
+import { cn } from "@/lib/utils";
 
 const Dialog = ({
   isOpen,
@@ -13,6 +14,7 @@ const Dialog = ({
   description,
   button,
   onOpenAutoFocus = true,
+  className,
 }) => {
   return (
     <DialogComponent open={isOpen} onOpenChange={setIsOpen}>
@@ -21,7 +23,10 @@ const Dialog = ({
 
       {/* // ===== DIALOG CONTENT ===== */}
       <DialogContent
-        className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto"
+        className={cn(
+          "sm:max-w-[550px] max-h-[90vh] overflow-y-auto",
+          className
+        )}
         onOpenAutoFocus={
           onOpenAutoFocus ? undefined : (e) => e.preventDefault()
         }

@@ -3,12 +3,15 @@ import { create } from "zustand";
 import {
   loadAllDataAction,
   createDataAction,
+  updateDataAction,
 } from "@/components/actions/data-actions";
 import sortBy from "sort-by";
+import { toast } from "sonner";
 
 const flowStore = create((set, get) => ({
   flows: [],
   isLoading: true,
+  isUpdating: false,
   error: null,
 
   // ===== LOAD FLOWS =====
@@ -70,6 +73,33 @@ const flowStore = create((set, get) => ({
     } catch (error) {
       console.error("Error creating flow:", error.message);
       throw error;
+    }
+  },
+
+  // ===== UPDATE FLOW =====
+  updateFlow: async (flow_id, data) => {
+    try {
+      set({ isUpdating: true });
+      const res = await updateDataAction({
+        table_name: "flows",
+        query: {
+          where: {
+            id: flow_id,
+          },
+          data,
+        },
+      });
+
+      if (res?.error) {
+        throw new Error(res?.error);
+      }
+
+      toast.success("Flow updated successfully");
+    } catch (error) {
+      console.error("Error updating flow:", error.message);
+      throw error;
+    } finally {
+      set({ isUpdating: false });
     }
   },
 }));
