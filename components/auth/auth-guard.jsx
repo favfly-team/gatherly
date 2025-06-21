@@ -25,7 +25,7 @@ export default function AuthGuard({ children }) {
   // ===== PATHS =====
   const paths = ["/login", "/register", "/"];
 
-  const publicPaths = ["/api", "/chat"];
+  const publicPaths = ["/api", "/chat", "/agent"];
 
   useEffect(() => {
     const auth = getAuth(app);

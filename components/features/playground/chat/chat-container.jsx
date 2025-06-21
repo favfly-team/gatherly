@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { CheckCircle } from "lucide-react";
 import usePlaygroundStore from "@/storage/playground-store";
 import ChatMessage from "./chat-message";
 import ChatInput from "./chat-input";
+import SyncLoading from "@/components/layout/loading/sync-loading";
 
 export default function ChatContainer({
   onChatCreated = null,
@@ -25,6 +26,8 @@ export default function ChatContainer({
     initialMessage,
   } = usePlaygroundStore();
 
+  const [messageLoading, setMessageLoading] = useState(true);
+
   const messagesEndRef = useRef(null);
 
   // ===== MODE DETECTION =====
@@ -38,18 +41,29 @@ export default function ChatContainer({
 
   // ===== LOAD DATA BASED ON MODE =====
   useEffect(() => {
-    if (isExistingChatMode) {
-      // EXISTING CHAT: Load past messages and agent settings
-      loadMessagesAndSystemPrompt(chat_id);
-    } else if (isNewChatMode) {
-      // NEW CHAT: Reset and load published agent settings (public access)
-      reset();
-      loadSystemPrompt(agent_id, true); // Use published version for public
-    } else if (isPlaygroundMode) {
-      // PLAYGROUND: Reset and load current agent settings (workspace access)
-      reset();
-      loadSystemPrompt(agent_id, false); // Use current version for testing
-    }
+    const loadData = async () => {
+      setMessageLoading(true);
+      try {
+        if (isExistingChatMode) {
+          // EXISTING CHAT: Load past messages and agent settings
+          await loadMessagesAndSystemPrompt(chat_id);
+        } else if (isNewChatMode) {
+          // NEW CHAT: Reset and load published agent settings (public access)
+          reset();
+          await loadSystemPrompt(agent_id, true); // Use published version for public
+        } else if (isPlaygroundMode) {
+          // PLAYGROUND: Reset and load current agent settings (workspace access)
+          reset();
+          await loadSystemPrompt(agent_id, false); // Use current version for testing
+        }
+      } catch (error) {
+        console.error("Error loading chat data:", error);
+      } finally {
+        setMessageLoading(false);
+      }
+    };
+
+    loadData();
   }, [
     chat_id,
     agent_id,
@@ -73,6 +87,10 @@ export default function ChatContainer({
       setIsDone(true);
     }
   }, [messages, loading, setIsDone]);
+
+  if (messageLoading) {
+    return <SyncLoading className="h-full bg-transparent" />;
+  }
 
   // ===== RENDER =====
   return (

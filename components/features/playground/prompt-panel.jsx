@@ -20,6 +20,7 @@ export default function PromptPanel() {
     systemPrompt,
     initialMessage,
     setSystemPrompt,
+    setInitialMessage,
     resetChat,
     resetAll,
     isLoading,
@@ -88,7 +89,7 @@ export default function PromptPanel() {
   return (
     <div className="flex flex-col h-full p-4 border-r bg-muted/50">
       <div className="flex justify-between items-center gap-2 mb-4">
-        <label className="font-semibold">System prompt</label>
+        <label className="font-semibold">Agent Settings</label>
         <div className="flex gap-2">
           {/* ===== SAVE ===== */}
           <Button
@@ -127,12 +128,29 @@ export default function PromptPanel() {
           <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       ) : (
-        <Textarea
-          className="w-full h-full p-2 rounded border bg-background resize-none"
-          value={systemPrompt}
-          onChange={(e) => setSystemPrompt(e.target.value)}
-          placeholder="Enter system prompt that defines how your agent should behave and respond to users..."
-        />
+        <div className="flex flex-col h-full gap-4">
+          {/* ===== SYSTEM PROMPT SECTION ===== */}
+          <div className="flex flex-col flex-1">
+            <label className="font-medium text-sm mb-2">System Prompt</label>
+            <Textarea
+              className="w-full h-full p-2 rounded border bg-background resize-none"
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              placeholder="Enter system prompt that defines how your agent should behave and respond to users..."
+            />
+          </div>
+
+          {/* ===== INITIAL MESSAGE SECTION ===== */}
+          <div className="flex flex-col h-24">
+            <label className="font-medium text-sm mb-2">Initial Message</label>
+            <Textarea
+              className="w-full h-full p-2 rounded border bg-background resize-none"
+              value={initialMessage}
+              onChange={(e) => setInitialMessage(e.target.value)}
+              placeholder="Enter the first message your agent will send to users..."
+            />
+          </div>
+        </div>
       )}
     </div>
   );
