@@ -105,7 +105,7 @@ const ChatCardItem = ({ chat }) => {
 
   return (
     <>
-      <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg border border-muted bg-white hover:shadow-lg transition-shadow">
+      <Card className="flex flex-col gap-2 p-4 shadow-none rounded-lg border border-muted bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <i className="p-2 rounded-full bg-muted-foreground/10 text-black/80">
