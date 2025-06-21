@@ -22,7 +22,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { downloadChatPDF } from "@/lib/pdf-generator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { handleShareAgent } from "../agents";
 
 const Chats = () => {
   const { agent_id } = useParams();
@@ -33,7 +32,7 @@ const Chats = () => {
   }, [agent_id, loadChats]);
 
   if (isLoading) {
-    return <SyncLoading className="h-full" />;
+    return <SyncLoading className="h-full bg-accent" />;
   }
 
   return (

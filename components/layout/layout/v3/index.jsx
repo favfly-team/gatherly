@@ -11,7 +11,10 @@ import userStore from "@/storage/user-store";
 
 const AgentLayout = ({ children }) => {
   return (
-    <Tabs defaultValue="chats" className="flex flex-col bg-white w-full h-full">
+    <Tabs
+      defaultValue="chats"
+      className="flex flex-col bg-accent w-full h-full"
+    >
       <Header />
       <div className="w-full h-full p-4">{children}</div>
     </Tabs>
@@ -23,7 +26,7 @@ const Header = () => {
   const tabs = [
     { value: "chats", label: "Chats" },
     { value: "playground", label: "Playground" },
-    { value: "settings", label: "Settings" },
+    { value: "share", label: "Share" },
   ];
 
   return (
@@ -89,7 +92,13 @@ const AgentName = () => {
 
 const InviteMembers = () => {
   return (
-    <Button variant="outline" size="sm">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        toast.info("Coming soon");
+      }}
+    >
       <Users />
       Invite Members
     </Button>
