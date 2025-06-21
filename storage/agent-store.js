@@ -307,6 +307,38 @@ const agentStore = create((set, get) => ({
     }
   },
 
+  // ===== GET PUBLISHED VERSION =====
+  getPublishedVersion: async (agent_id) => {
+    try {
+      // Load bot
+      const bot = await loadSingleDataAction({
+        table_name: "bots",
+        id: agent_id,
+      });
+
+      if (bot?.error) throw new Error(bot?.error);
+      if (!bot.published_version_id)
+        throw new Error("Agent has no published version");
+
+      // Load published version
+      const publishedVersion = await loadSingleDataAction({
+        table_name: "bot_versions",
+        id: bot.published_version_id,
+      });
+
+      if (publishedVersion?.error) throw new Error(publishedVersion?.error);
+
+      return {
+        bot,
+        publishedVersion,
+        settings: publishedVersion.settings,
+      };
+    } catch (error) {
+      console.error("Error loading published version:", error.message);
+      throw error;
+    }
+  },
+
   // ===== DELETE AGENT =====
   deleteAgent: async (agent_id) => {
     try {

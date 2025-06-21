@@ -5,7 +5,6 @@ import {
   createDataAction,
   updateDataAction,
 } from "@/components/actions/data-actions";
-import { toast } from "sonner";
 
 const userStore = create((set, get) => ({
   user: null,
@@ -59,7 +58,6 @@ const userStore = create((set, get) => ({
       }
 
       set({ user: res });
-      toast.success("User profile created successfully");
 
       return res;
     } catch (error) {
@@ -93,8 +91,6 @@ const userStore = create((set, get) => ({
       set((state) => ({
         user: { ...state.user, ...data },
       }));
-
-      toast.success("Profile updated successfully");
 
       return res;
     } catch (error) {

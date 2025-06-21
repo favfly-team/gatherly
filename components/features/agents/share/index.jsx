@@ -9,27 +9,29 @@ import { Switch } from "@/components/ui/switch";
 import { Copy, Code } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 const ShareAgent = () => {
+  // ===== PARAMS =====
+  const { agent_id } = useParams();
+
+  // ===== SHARE URL =====
+  const shareUrl = `${window.location.origin}/agent/${agent_id}`;
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <ShareLink />
-      <ShareEmbedLink />
+      <ShareLink shareUrl={shareUrl} />
+      <ShareEmbedLink shareUrl={shareUrl} />
     </div>
   );
 };
 
-const ShareLink = () => {
-  const [copied, setCopied] = useState(false);
-
-  const shareUrl = "https://localhost:3000/chat?agent_id=2384";
-
+const ShareLink = ({ shareUrl }) => {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
+
       toast.success("Link copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast.error("Failed to copy link");
     }
@@ -39,8 +41,8 @@ const ShareLink = () => {
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold">Your agent link</h2>
 
-      <Card className="px-6 py-4 w-fit flex items-center gap-4 shadow-none">
-        <span className="text-lg">{shareUrl}</span>
+      <Card className="px-6 py-4 w-fit flex items-center gap-8 shadow-none">
+        <span className="text-sm">{shareUrl}</span>
 
         <Button
           variant="secondary"
@@ -55,7 +57,7 @@ const ShareLink = () => {
   );
 };
 
-const ShareEmbedLink = () => {
+const ShareEmbedLink = ({ shareUrl }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [width, setWidth] = useState("100");
@@ -63,15 +65,13 @@ const ShareEmbedLink = () => {
   const [height, setHeight] = useState("600");
   const [heightUnit, setHeightUnit] = useState("px");
 
-  const embedUrl = "https://localhost:3000/chat?agent_id=2384";
-
   const generateIframeCode = () => {
     const widthValue = isFullscreen ? "100%" : `${width}${widthUnit}`;
     const heightValue = isFullscreen ? "100vh" : `${height}${heightUnit}`;
     const styleAttribute = `border: none; width: ${widthValue}; height: ${heightValue}`;
 
     return `<iframe
-  src="${embedUrl}"
+  src="${shareUrl}"
   style="${styleAttribute}"
 ></iframe>`;
   };
@@ -213,7 +213,7 @@ const ShareEmbedLink = () => {
                   {"\n  "}
                   <span className="text-green-600">src</span>
                   <span className="text-gray-600">=</span>
-                  <span className="text-red-600">"{embedUrl}"</span>
+                  <span className="text-red-600">"{shareUrl}"</span>
                   {"\n  "}
                   <span className="text-green-600">style</span>
                   <span className="text-gray-600">=</span>

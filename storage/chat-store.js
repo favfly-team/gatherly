@@ -7,7 +7,6 @@ import {
   deleteDataAction,
 } from "@/components/actions/data-actions";
 import sortBy from "sort-by";
-import { toast } from "sonner";
 
 const chatStore = create((set, get) => ({
   chats: [],
@@ -95,8 +94,6 @@ const chatStore = create((set, get) => ({
       if (res?.error) {
         throw new Error(res?.error);
       }
-
-      toast.success("Chat updated successfully");
     } catch (error) {
       console.error("Error updating chat:", error.message);
       throw error;
@@ -126,8 +123,6 @@ const chatStore = create((set, get) => ({
       set((state) => ({
         chats: state.chats.filter((chat) => chat.id !== chat_id),
       }));
-
-      toast.success("Chat deleted successfully");
     } catch (error) {
       console.error("Error deleting chat:", error.message);
       throw error;

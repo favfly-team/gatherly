@@ -123,7 +123,6 @@ const memberStore = create((set, get) => ({
         ),
       }));
 
-      toast.success("Member added to workspace successfully");
       return res;
     } catch (error) {
       console.error("Error adding member to workspace:", error.message);
@@ -160,7 +159,6 @@ const memberStore = create((set, get) => ({
         ),
       }));
 
-      toast.success("Member updated successfully");
       return res;
     } catch (error) {
       console.error("Error updating member:", error.message);
@@ -196,7 +194,6 @@ const memberStore = create((set, get) => ({
         members: state.members.filter((member) => member.id !== member_id),
       }));
 
-      toast.success("Member removed from workspace successfully");
       return res;
     } catch (error) {
       console.error("Error removing member from workspace:", error.message);

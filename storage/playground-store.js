@@ -1,9 +1,12 @@
 import { create } from "zustand";
-import { loadSingleDataAction } from "@/components/actions/data-actions";
-import { updateDataAction } from "@/components/actions/data-actions";
+import {
+  loadSingleDataAction,
+  updateDataAction,
+} from "@/components/actions/data-actions";
 import agentStore from "./agent-store";
 
 const usePlaygroundStore = create((set, get) => ({
+  // ===== STATE =====
   systemPrompt: "",
   initialMessage: "",
   messages: [],
@@ -11,6 +14,7 @@ const usePlaygroundStore = create((set, get) => ({
   isLoading: false,
   isDone: false,
 
+  // ===== ACTIONS =====
   reset: () =>
     set({
       systemPrompt: "",
@@ -26,33 +30,31 @@ const usePlaygroundStore = create((set, get) => ({
   setLoading: (loading) => set({ loading }),
   setIsDone: (isDone) => set({ isDone }),
 
-  // ===== LOAD SYSTEM PROMPT FROM PUBLISHED VERSION (PUBLIC ACCESS) =====
+  // ===== HELPER: LOAD AGENT DATA =====
+  _loadAgentData: async (agent_id, usePublished) => {
+    const agentState = agentStore.getState();
+
+    if (usePublished) {
+      return await agentState.getPublishedVersion(agent_id);
+    } else {
+      return await agentState.loadAgent(agent_id);
+    }
+  },
+
+  // ===== LOAD SYSTEM PROMPT =====
   loadSystemPrompt: async (agent_id, usePublished = true) => {
     try {
       set({ isLoading: true });
 
-      if (usePublished) {
-        // For public access, use published version
-        const data = await agentStore.getState().getPublishedVersion(agent_id);
-        set({
-          systemPrompt: data.settings?.system_prompt || "",
-          initialMessage:
-            data.settings?.initial_message ||
-            "Hello! How can I help you today?",
-        });
-      } else {
-        // For workspace access, use current version
-        const data = await agentStore.getState().loadAgent(agent_id);
-        set({
-          systemPrompt: data.settings?.system_prompt || "",
-          initialMessage:
-            data.settings?.initial_message ||
-            "Hello! How can I help you today?",
-        });
-      }
+      const data = await get()._loadAgentData(agent_id, usePublished);
+
+      set({
+        systemPrompt: data.settings?.system_prompt || "",
+        initialMessage:
+          data.settings?.initial_message || "Hello! How can I help you today?",
+      });
     } catch (error) {
       console.error("Error loading system prompt:", error);
-      // Fallback to basic values
       set({
         systemPrompt: "",
         initialMessage: "Hello! How can I help you today?",
@@ -63,7 +65,7 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== LOAD MESSAGES ONLY =====
+  // ===== LOAD MESSAGES =====
   loadMessages: async (chat_id) => {
     try {
       const res = await loadSingleDataAction({
@@ -71,9 +73,7 @@ const usePlaygroundStore = create((set, get) => ({
         id: chat_id,
       });
 
-      if (res?.error) {
-        throw res?.error;
-      }
+      if (res?.error) throw new Error(res.error);
 
       set({ messages: res?.messages || [] });
     } catch (error) {
@@ -82,7 +82,7 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== LOAD MESSAGES AND SYSTEM PROMPT (FOR EXISTING CHATS) =====
+  // ===== LOAD MESSAGES AND SYSTEM PROMPT =====
   loadMessagesAndSystemPrompt: async (chat_id) => {
     try {
       set({ isLoading: true });
@@ -93,15 +93,13 @@ const usePlaygroundStore = create((set, get) => ({
         id: chat_id,
       });
 
-      if (chat?.error) {
-        throw chat?.error;
-      }
+      if (chat?.error) throw new Error(chat.error);
 
-      // Load agent settings using bot_id from chat
+      // Load agent settings
       if (chat?.bot_id) {
         try {
-          // Try to load current version first (for workspace users)
-          const agentData = await agentStore.getState().loadAgent(chat.bot_id);
+          // Try current version first (workspace users)
+          const agentData = await get()._loadAgentData(chat.bot_id, false);
           set({
             systemPrompt: agentData.settings?.system_prompt || "",
             initialMessage:
@@ -114,10 +112,8 @@ const usePlaygroundStore = create((set, get) => ({
             error
           );
           try {
-            // Fallback to published version (for public access)
-            const publishedData = await agentStore
-              .getState()
-              .getPublishedVersion(chat.bot_id);
+            // Fallback to published version (public users)
+            const publishedData = await get()._loadAgentData(chat.bot_id, true);
             set({
               systemPrompt: publishedData.settings?.system_prompt || "",
               initialMessage:
@@ -143,7 +139,7 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== UPDATE MESSAGES IN CHAT =====
+  // ===== UPDATE MESSAGES =====
   updateMessages: async (chat_id, messages) => {
     try {
       const res = await updateDataAction({
@@ -157,9 +153,7 @@ const usePlaygroundStore = create((set, get) => ({
         },
       });
 
-      if (res?.error) {
-        throw res?.error;
-      }
+      if (res?.error) throw new Error(res.error);
 
       set({ messages });
     } catch (error) {
@@ -168,20 +162,16 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== RESET CHAT MESSAGES =====
+  // ===== RESET CHAT =====
   resetChat: () => set({ messages: [], isDone: false }),
 
-  // ===== RESET ALL AND RELOAD SYSTEM PROMPT =====
+  // ===== RESET ALL =====
   resetAll: async (agent_id, usePublished = true) => {
     try {
-      // Load system prompt
       await get().loadSystemPrompt(agent_id, usePublished);
-
-      // Reset messages
       set({ messages: [], isDone: false });
     } catch (error) {
       console.error("Error resetting all:", error);
-      // Still reset messages even if system prompt loading fails
       set({ messages: [], isDone: false });
     }
   },
