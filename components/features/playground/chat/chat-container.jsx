@@ -86,7 +86,9 @@ export default function ChatContainer({
           {messages.map((msg, i) => (
             <ChatMessage key={i} {...msg} />
           ))}
-          {loading && <ChatMessage role="assistant" content="Thinking..." />}
+          {loading && messages?.[messages.length - 1]?.role === "user" && (
+            <ChatMessage role="assistant" content="Thinking..." />
+          )}
         </div>
         <div ref={messagesEndRef} />
       </ScrollArea>
