@@ -11,10 +11,10 @@ import Dialog from "@/components/layout/dialog/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Form from "@/components/layout/form-fields/form";
-import flowStore from "@/storage/flow-store";
+import chatStore from "@/storage/chat-store";
 import { forwardRef } from "react";
 
-const CreateFlowModal = () => {
+const CreateChatModal = () => {
   // ======= INITIALIZE STATES ========
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,16 +22,16 @@ const CreateFlowModal = () => {
   const { agent_id } = useParams();
 
   // ======= INITIALIZE STORE ========
-  const { createFlow } = flowStore();
+  const { createChat } = chatStore();
 
   // ======= INITIALIZE FORM FIELDS ========
   const fields = [
     {
       name: "name",
-      label: "Flow Name",
+      label: "Chat Name",
       type: "text",
-      placeholder: "Enter flow name",
-      validation: z.string().nonempty("Flow name is required"),
+      placeholder: "Enter chat name",
+      validation: z.string().nonempty("Chat name is required"),
     },
   ];
 
@@ -55,14 +55,14 @@ const CreateFlowModal = () => {
   // ======= FORM SUBMISSION ========
   const onSubmit = async (values) => {
     try {
-      await createFlow({
+      await createChat({
         ...values,
         bot_id: agent_id,
       });
 
       setIsOpen(false);
       form.reset();
-      toast.success("Flow created successfully!");
+      toast.success("Chat created successfully!");
     } catch (error) {
       console.error(error.message);
       toast.error(error.message);
@@ -74,13 +74,13 @@ const CreateFlowModal = () => {
       isOpen={isOpen}
       setIsOpen={setIsOpen}
       button={<TriggerButton />}
-      title="Create New Flow"
+      title="Create New Chat"
     >
       <Form
         form={form}
         onSubmit={onSubmit}
         fields={fields}
-        submitLabel="Create Flow"
+        submitLabel="Create Chat"
       />
     </Dialog>
   );
@@ -90,9 +90,9 @@ const CreateFlowModal = () => {
 const TriggerButton = forwardRef((props, ref) => {
   return (
     <Button ref={ref} size="sm" {...props}>
-      <Plus /> Create Flow
+      <Plus /> Create Chat
     </Button>
   );
 });
 
-export default CreateFlowModal;
+export default CreateChatModal;

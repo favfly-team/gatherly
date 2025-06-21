@@ -310,17 +310,17 @@ const agentStore = create((set, get) => ({
   // ===== DELETE AGENT =====
   deleteAgent: async (agent_id) => {
     try {
-      // Delete all flows
-      const flows = await loadAllDataAction({
-        table_name: "flows",
+      // Delete all chats
+      const chats = await loadAllDataAction({
+        table_name: "chats",
         query: { where: { bot_id: agent_id } },
       });
 
-      if (flows?.length > 0) {
-        for (const flow of flows) {
+      if (chats?.length > 0) {
+        for (const chat of chats) {
           await deleteDataAction({
-            table_name: "flows",
-            query: { where: { id: flow.id } },
+            table_name: "chats",
+            query: { where: { id: chat.id } },
           });
         }
       }

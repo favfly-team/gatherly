@@ -8,26 +8,26 @@ import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import Dialog from "@/components/layout/dialog/dialog";
 import Form from "@/components/layout/form-fields/form";
-import flowStore from "@/storage/flow-store";
+import chatStore from "@/storage/chat-store";
 
-const RenameFlowModal = ({ flow, isOpen, setIsOpen }) => {
+const RenameChatModal = ({ chat, isOpen, setIsOpen }) => {
   // ======= INITIALIZE PARAMS ========
   const { agent_id } = useParams();
 
   // ======= INITIALIZE STORE ========
-  const { updateFlow, loadFlows } = flowStore();
+  const { updateChat, loadChats } = chatStore();
 
   // ======= FORM FIELDS ========
   const fields = [
     {
       name: "name",
       type: "text",
-      placeholder: "Enter flow name",
+      placeholder: "Enter chat name",
       validation: z
         .string()
-        .nonempty("Flow name is required")
-        .min(2, "Flow name must be at least 2 characters")
-        .max(50, "Flow name must be less than 50 characters"),
+        .nonempty("Chat name is required")
+        .min(2, "Chat name must be at least 2 characters")
+        .max(50, "Chat name must be less than 50 characters"),
     },
   ];
 
@@ -43,44 +43,44 @@ const RenameFlowModal = ({ flow, isOpen, setIsOpen }) => {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: flow?.name || "",
+      name: chat?.name || "",
     },
   });
 
   // ======= FORM SUBMISSION ========
   const onSubmit = async (values) => {
     try {
-      await updateFlow(flow.id, {
+      await updateChat(chat.id, {
         name: values.name,
         updated_at: Date.now(),
       });
 
-      // Reload flows to reflect changes
-      await loadFlows(agent_id);
+      // Reload chats to reflect changes
+      await loadChats(agent_id);
 
       setIsOpen(false);
       form.reset();
-      toast.success("Flow renamed successfully!");
+      toast.success("Chat renamed successfully!");
     } catch (error) {
-      console.error("Error renaming flow:", error.message);
-      toast.error(error.message || "Failed to rename flow");
+      console.error("Error renaming chat:", error.message);
+      toast.error(error.message || "Failed to rename chat");
     }
   };
 
-  // ======= UPDATE FORM WHEN FLOW CHANGES ========
+  // ======= UPDATE FORM WHEN CHAT CHANGES ========
   React.useEffect(() => {
-    if (flow?.name) {
-      form.setValue("name", flow.name);
+    if (chat?.name) {
+      form.setValue("name", chat.name);
     }
-  }, [flow?.name, form]);
+  }, [chat?.name, form]);
 
-  if (!flow) return null;
+  if (!chat) return null;
 
   return (
     <Dialog
       isOpen={isOpen}
       setIsOpen={setIsOpen}
-      title="Flow Name"
+      title="Chat Name"
       className="sm:max-w-[400px]"
     >
       <Form
@@ -93,4 +93,4 @@ const RenameFlowModal = ({ flow, isOpen, setIsOpen }) => {
   );
 };
 
-export default RenameFlowModal;
+export default RenameChatModal;

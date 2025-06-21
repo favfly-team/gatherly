@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import usePlaygroundStore from "@/storage/playground-store";
-import flowStore from "@/storage/flow-store";
+import chatStore from "@/storage/chat-store";
 import { fetchOpenAIChat } from "@/components/actions/openai";
 
 const DEFAULT_PROMPT = `
@@ -21,7 +21,7 @@ export default function useChat() {
     setIsDone,
   } = usePlaygroundStore();
 
-  const { createFlow } = flowStore();
+  const { createChat } = chatStore();
 
   // ===== OPTIMIZED MESSAGE SENDER =====
   const sendMessage = useCallback(
@@ -29,13 +29,13 @@ export default function useChat() {
       input,
       mode = "existing",
       agent_id = null,
-      flow_id = null,
-      onFlowCreated = null,
+      chat_id = null,
+      onChatCreated = null,
     }) => {
       if (!input?.trim() || loading) return false;
 
       const userMessage = { role: "user", content: input };
-      let currentFlowId = flow_id;
+      let currentChatId = chat_id;
 
       try {
         // ===== ADD USER MESSAGE TO LOCAL STATE IMMEDIATELY =====
@@ -44,27 +44,27 @@ export default function useChat() {
 
         setLoading(true);
 
-        // ===== CREATE FLOW FOR NEW CHATS =====
+        // ===== CREATE CHAT FOR NEW CHATS =====
         if (mode === "new" && messages.length === 0 && agent_id) {
           // Create a temporary name - will be updated by the page component
-          const tempFlowName = "New Chat";
+          const tempChatName = "New Chat";
 
-          const newFlow = await createFlow({
-            name: tempFlowName,
+          const newChat = await createChat({
+            name: tempChatName,
             bot_id: agent_id,
           });
 
-          currentFlowId = newFlow.id;
+          currentChatId = newChat.id;
 
           // ===== NOTIFY PARENT COMPONENT =====
-          if (onFlowCreated) {
-            onFlowCreated(newFlow.id);
+          if (onChatCreated) {
+            onChatCreated(newChat.id);
           }
         }
 
         // ===== UPDATE MESSAGES IN DATABASE =====
-        if (currentFlowId) {
-          await updateMessages(currentFlowId, newMessages);
+        if (currentChatId) {
+          await updateMessages(currentChatId, newMessages);
         }
 
         // ===== GET AI RESPONSE =====
@@ -81,8 +81,8 @@ export default function useChat() {
         setMessages(finalMessages); // Update local state first
 
         // ===== UPDATE DATABASE WITH AI RESPONSE =====
-        if (currentFlowId) {
-          await updateMessages(currentFlowId, finalMessages);
+        if (currentChatId) {
+          await updateMessages(currentChatId, finalMessages);
         }
 
         // ===== CHECK FOR COMPLETION =====
@@ -104,8 +104,8 @@ export default function useChat() {
         setMessages([...messages, userMessage, errorMessage]);
 
         // ===== UPDATE DATABASE WITH ERROR =====
-        if (currentFlowId) {
-          await updateMessages(currentFlowId, [
+        if (currentChatId) {
+          await updateMessages(currentChatId, [
             ...messages,
             userMessage,
             errorMessage,
@@ -125,7 +125,7 @@ export default function useChat() {
       setMessages,
       setLoading,
       setIsDone,
-      createFlow,
+      createChat,
     ]
   );
 

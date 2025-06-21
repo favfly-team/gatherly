@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Share2,
-  Workflow,
+  Workchat,
   FileDown,
   Copy,
   MoreVertical,
   Pen,
   Trash2,
 } from "lucide-react";
-import CreateFlowModal from "./create-flow-modal";
-import RenameFlowModal from "./rename-flow-modal";
-import DeleteFlowModal from "./delete-flow-modal";
+import CreateChatModal from "./create-chat-modal";
+import RenameChatModal from "./rename-chat-modal";
+import DeleteChatModal from "./delete-chat-modal";
 import DropdownMenu from "@/components/layout/dropdown-menu";
-import flowStore from "@/storage/flow-store";
+import chatStore from "@/storage/chat-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -24,67 +24,38 @@ import { downloadChatPDF } from "@/lib/pdf-generator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { handleShareAgent } from "../agents";
 
-const Flows = () => {
+const Chats = () => {
   const { agent_id } = useParams();
-  const { flows, isLoading, loadFlows } = flowStore();
+  const { chats, isLoading, loadChats } = chatStore();
 
   useEffect(() => {
-    if (agent_id) loadFlows(agent_id);
-  }, [agent_id, loadFlows]);
+    if (agent_id) loadChats(agent_id);
+  }, [agent_id, loadChats]);
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full -m-6">
-        <SyncLoading className="h-full" />
-      </div>
-    );
+    return <SyncLoading className="h-full" />;
   }
 
   return (
     <div className="max-w-4xl mx-auto">
-      <FlowsHeader />
-
-      {flows.length > 0 ? (
+      {chats.length > 0 ? (
         <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-4 mt-4">
-            {flows.map((flow) => (
-              <FlowCardItem key={flow.id} flow={flow} />
+            {chats.map((chat) => (
+              <ChatCardItem key={chat.id} chat={chat} />
             ))}
           </div>
         </ScrollArea>
       ) : (
         <div className="flex justify-center items-center h-32 text-muted-foreground">
-          No flows found.
+          No chats found.
         </div>
       )}
     </div>
   );
 };
 
-const FlowsHeader = () => {
-  // ======= INITIALIZE PARAMS ========
-  const { agent_id } = useParams();
-
-  return (
-    <div className="flex items-center justify-between pb-4 bg-white">
-      <h3 className="text-2xl font-bold">Flows</h3>
-
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleShareAgent(agent_id)}
-        >
-          <Share2 /> Share Bot
-        </Button>
-
-        <CreateFlowModal />
-      </div>
-    </div>
-  );
-};
-
-const FlowCardItem = ({ flow }) => {
+const ChatCardItem = ({ chat }) => {
   // ======= INITIALIZE STATES ========
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -92,7 +63,7 @@ const FlowCardItem = ({ flow }) => {
 
   // ===== COPY ALL CONVERSATION =====
   const copyAllChatConversation = () => {
-    const messages = flow.messages;
+    const messages = chat.messages;
 
     const conversation = messages.map((message) => {
       return `${message.role}: ${message.content}`;
@@ -109,15 +80,15 @@ const FlowCardItem = ({ flow }) => {
       setIsDownloading(true);
 
       // Make sure we have messages to download
-      if (!flow.messages || flow.messages.length === 0) {
+      if (!chat.messages || chat.messages.length === 0) {
         toast.error("No messages to download");
         return;
       }
 
       // Clean messages to remove any GATHERLY_DONE markers
-      const messages = flow.messages;
+      const messages = chat.messages;
 
-      await downloadChatPDF(messages, `gatherly-chat-${flow.id}`);
+      await downloadChatPDF(messages, `gatherly-chat-${chat.id}`);
       toast.success("Chat downloaded as PDF");
     } catch (error) {
       console.error("Error downloading PDF:", error);
@@ -155,9 +126,9 @@ const FlowCardItem = ({ flow }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <i className="p-2 rounded-full bg-muted-foreground/10 text-primary">
-              <Workflow />
+              <Workchat />
             </i>
-            <span className="font-semibold text-lg">{flow.name}</span>
+            <span className="font-semibold text-lg">{chat.name}</span>
           </div>
           <div className="flex items-center">
             <Button
@@ -184,11 +155,11 @@ const FlowCardItem = ({ flow }) => {
               size="icon"
               className="[&_svg]:size-5"
               onClick={() => {
-                const url = `${window.location.origin}/chat/${flow.id}`;
+                const url = `${window.location.origin}/chat/${chat.id}`;
                 navigator.clipboard.writeText(url);
-                toast.success("Flow URL copied to clipboard");
+                toast.success("Chat URL copied to clipboard");
               }}
-              title="Share flow"
+              title="Share chat"
             >
               <Share2 />
             </Button>
@@ -204,29 +175,29 @@ const FlowCardItem = ({ flow }) => {
         <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
           <span>
             <span className="font-medium">Date:</span>{" "}
-            {flow?.created_at
-              ? format(new Date(flow.created_at), "dd/MM/yyyy")
+            {chat?.created_at
+              ? format(new Date(chat.created_at), "dd/MM/yyyy")
               : "-"}
           </span>
           <span>
             <span className="font-medium">Expiry:</span>{" "}
-            {flow?.expires_at
-              ? format(new Date(flow.expires_at), "dd/MM/yyyy")
+            {chat?.expires_at
+              ? format(new Date(chat.expires_at), "dd/MM/yyyy")
               : "-"}
           </span>
         </div>
       </Card>
 
       {/* // ===== RENAME MODAL ===== */}
-      <RenameFlowModal
-        flow={flow}
+      <RenameChatModal
+        chat={chat}
         isOpen={isRenameOpen}
         setIsOpen={setIsRenameOpen}
       />
 
       {/* // ===== DELETE MODAL ===== */}
-      <DeleteFlowModal
-        flow={flow}
+      <DeleteChatModal
+        chat={chat}
         isOpen={isDeleteOpen}
         setIsOpen={setIsDeleteOpen}
       />
@@ -234,4 +205,4 @@ const FlowCardItem = ({ flow }) => {
   );
 };
 
-export default Flows;
+export default Chats;

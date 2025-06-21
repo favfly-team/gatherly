@@ -1,4 +1,4 @@
-// ===== FLOW STORE =====
+// ===== CHAT STORE =====
 import { create } from "zustand";
 import {
   loadAllDataAction,
@@ -9,19 +9,19 @@ import {
 import sortBy from "sort-by";
 import { toast } from "sonner";
 
-const flowStore = create((set, get) => ({
-  flows: [],
+const chatStore = create((set, get) => ({
+  chats: [],
   isLoading: true,
   isUpdating: false,
   isDeleting: false,
   error: null,
 
-  // ===== LOAD FLOWS =====
-  loadFlows: async (agent_id) => {
+  // ===== LOAD CHATS =====
+  loadChats: async (agent_id) => {
     try {
       set({ isLoading: true, error: null });
       const res = await loadAllDataAction({
-        table_name: "flows",
+        table_name: "chats",
         query: {
           where: {
             bot_id: agent_id,
@@ -34,23 +34,23 @@ const flowStore = create((set, get) => ({
       }
 
       set({
-        flows: res.sort(sortBy("-created_at")) || [],
+        chats: res.sort(sortBy("-created_at")) || [],
         isLoading: false,
       });
     } catch (error) {
-      console.error("Error loading flows:", error.message);
+      console.error("Error loading chats:", error.message);
       set({ error: error.message, isLoading: false });
     }
   },
 
-  // ===== CREATE FLOW =====
-  createFlow: async (data) => {
+  // ===== CREATE CHAT =====
+  createChat: async (data) => {
     try {
       // ===== SET EXPIRES AT =====
       const expires_at = data.expires_at || Date.now() + 12 * 60 * 60 * 1000;
 
       const res = await createDataAction({
-        table_name: "flows",
+        table_name: "chats",
         query: {
           data: {
             ...data,
@@ -66,27 +66,27 @@ const flowStore = create((set, get) => ({
         throw new Error(res?.error);
       }
 
-      // ===== UPDATE FLOWS LIST =====
+      // ===== UPDATE CHATS LIST =====
       set((state) => ({
-        flows: [res, ...state.flows],
+        chats: [res, ...state.chats],
       }));
 
       return res;
     } catch (error) {
-      console.error("Error creating flow:", error.message);
+      console.error("Error creating chat:", error.message);
       throw error;
     }
   },
 
-  // ===== UPDATE FLOW =====
-  updateFlow: async (flow_id, data) => {
+  // ===== UPDATE CHAT =====
+  updateChat: async (chat_id, data) => {
     try {
       set({ isUpdating: true });
       const res = await updateDataAction({
-        table_name: "flows",
+        table_name: "chats",
         query: {
           where: {
-            id: flow_id,
+            id: chat_id,
           },
           data,
         },
@@ -96,24 +96,24 @@ const flowStore = create((set, get) => ({
         throw new Error(res?.error);
       }
 
-      toast.success("Flow updated successfully");
+      toast.success("Chat updated successfully");
     } catch (error) {
-      console.error("Error updating flow:", error.message);
+      console.error("Error updating chat:", error.message);
       throw error;
     } finally {
       set({ isUpdating: false });
     }
   },
 
-  // ===== DELETE FLOW =====
-  deleteFlow: async (flow_id) => {
+  // ===== DELETE CHAT =====
+  deleteChat: async (chat_id) => {
     try {
       set({ isDeleting: true });
       const res = await deleteDataAction({
-        table_name: "flows",
+        table_name: "chats",
         query: {
           where: {
-            id: flow_id,
+            id: chat_id,
           },
         },
       });
@@ -122,14 +122,14 @@ const flowStore = create((set, get) => ({
         throw new Error(res?.error);
       }
 
-      // Remove flow from local state
+      // Remove chat from local state
       set((state) => ({
-        flows: state.flows.filter((flow) => flow.id !== flow_id),
+        chats: state.chats.filter((chat) => chat.id !== chat_id),
       }));
 
-      toast.success("Flow deleted successfully");
+      toast.success("Chat deleted successfully");
     } catch (error) {
-      console.error("Error deleting flow:", error.message);
+      console.error("Error deleting chat:", error.message);
       throw error;
     } finally {
       set({ isDeleting: false });
@@ -137,4 +137,4 @@ const flowStore = create((set, get) => ({
   },
 }));
 
-export default flowStore;
+export default chatStore;

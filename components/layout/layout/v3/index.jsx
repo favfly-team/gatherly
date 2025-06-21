@@ -2,7 +2,7 @@
 
 import Button from "@/components/layout/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CircleCheckBig, Share2 } from "lucide-react";
+import { CircleCheckBig, Share2, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import userStore from "@/storage/user-store";
 
 const AgentLayout = ({ children }) => {
   return (
-    <Tabs defaultValue="flows" className="flex flex-col bg-white w-full h-full">
+    <Tabs defaultValue="chats" className="flex flex-col bg-white w-full h-full">
       <Header />
       <div className="w-full h-full p-4">{children}</div>
     </Tabs>
@@ -21,7 +21,7 @@ const AgentLayout = ({ children }) => {
 const Header = () => {
   // ===== TABS =====
   const tabs = [
-    { value: "flows", label: "Flows" },
+    { value: "chats", label: "Chats" },
     { value: "playground", label: "Playground" },
     { value: "settings", label: "Settings" },
   ];
@@ -46,8 +46,8 @@ const Header = () => {
 
       {/* ===== ACTIONS ===== */}
       <div className="w-1/3 flex justify-end items-center gap-2">
-        <ShareAgent />
-        <PublishAgent />
+        <InviteMembers /> {/* // ADD INVITE MEMBERS */}
+        <PublishAgent /> {/* // ADD PUBLISH AGENT */}
       </div>
     </div>
   );
@@ -87,11 +87,11 @@ const AgentName = () => {
   );
 };
 
-const ShareAgent = () => {
+const InviteMembers = () => {
   return (
     <Button variant="outline" size="sm">
-      <Share2 className="h-4 w-4" />
-      Share
+      <Users />
+      Invite Members
     </Button>
   );
 };

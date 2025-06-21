@@ -12,12 +12,12 @@ import useChat from "./use-chat";
 export default function ChatInput({
   mode = "existing", // "new" | "existing"
   agent_id = null,
-  onFlowCreated = null,
+  onChatCreated = null,
 }) {
   // ===== CUSTOM HOOK FOR CHAT LOGIC =====
   const { sendMessage } = useChat();
   const { isDone } = usePlaygroundStore();
-  const { flow_id } = useParams();
+  const { chat_id } = useParams();
 
   const defaultInputMessage = "Hi, start the conversation";
 
@@ -25,19 +25,19 @@ export default function ChatInput({
   const [input, setInput] = useState(
     mode === "existing" ? "" : defaultInputMessage
   );
-  const [isCreatingFlow, setIsCreatingFlow] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const inputRef = useRef(null);
 
   // ===== HANDLE MESSAGE SENDING =====
   const handleSendMessage = async () => {
-    if (!input.trim() || isCreatingFlow) return;
+    if (!input.trim() || isCreatingChat) return;
 
     const currentInput = input;
     setInput("");
 
-    // ===== SET CREATING FLOW STATE FOR NEW CHATS =====
+    // ===== SET CREATING CHAT STATE FOR NEW CHATS =====
     if (mode === "new") {
-      setIsCreatingFlow(true);
+      setIsCreatingChat(true);
     }
 
     try {
@@ -45,8 +45,8 @@ export default function ChatInput({
         input: currentInput,
         mode,
         agent_id,
-        flow_id,
-        onFlowCreated,
+        chat_id,
+        onChatCreated,
       });
 
       if (success) {
@@ -59,7 +59,7 @@ export default function ChatInput({
         setInput(currentInput);
       }
     } finally {
-      setIsCreatingFlow(false);
+      setIsCreatingChat(false);
 
       // ===== FOCUS INPUT AFTER DELAY =====
       setTimeout(() => {
@@ -117,13 +117,13 @@ export default function ChatInput({
         value={input}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        disabled={isCreatingFlow}
+        disabled={isCreatingChat}
       />
       <div className="flex-1">
         <Button
           type="submit"
           size="icon"
-          disabled={isCreatingFlow || !input.trim()}
+          disabled={isCreatingChat || !input.trim()}
           className="shrink-0 rounded-full [&_svg]:size-5 mb-2 me-2"
         >
           <ArrowUp className="w-4 h-4" />

@@ -23,7 +23,7 @@ export async function fetchOpenAIChat({ messages, systemPrompt }) {
   return data.choices?.[0]?.message?.content || "";
 }
 
-export async function generateFlowName(messages) {
+export async function generateChatName(messages) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   // Create a system prompt that instructs the model to generate a concise, descriptive name
@@ -52,14 +52,14 @@ export async function generateFlowName(messages) {
       }),
     });
 
-    if (!res.ok) throw new Error("OpenAI API error when generating flow name");
+    if (!res.ok) throw new Error("OpenAI API error when generating chat name");
     const data = await res.json();
-    const flowName = data.choices?.[0]?.message?.content || "";
+    const chatName = data.choices?.[0]?.message?.content || "";
 
     // Ensure the name isn't too long
-    return flowName.substring(0, 50);
+    return chatName.substring(0, 50);
   } catch (error) {
-    console.error("Error generating flow name:", error);
+    console.error("Error generating chat name:", error);
     return "Untitled Conversation";
   }
 }

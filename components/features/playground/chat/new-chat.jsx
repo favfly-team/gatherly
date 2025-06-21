@@ -22,9 +22,9 @@ export default function NewChat({ agent_id }) {
           <ChatContainer
             mode="new"
             agent_id={agent_id}
-            onFlowCreated={(flow_id) => {
+            onChatCreated={(chat_id) => {
               // ===== SEAMLESS URL TRANSITION =====
-              const newUrl = `/chat/${flow_id}`;
+              const newUrl = `/chat/${chat_id}`;
               window.history.replaceState(null, "", newUrl);
             }}
           />

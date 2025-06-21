@@ -11,7 +11,7 @@ import ChatInput from "./chat-input";
 export default function ChatContainer({
   mode = "existing", // "new" | "existing"
   agent_id = null,
-  onFlowCreated = null,
+  onChatCreated = null,
 }) {
   // ===== INITIALIZE STATES =====
   const {
@@ -26,7 +26,7 @@ export default function ChatContainer({
   } = usePlaygroundStore();
 
   // ===== GET PARAMS AND PATH =====
-  const { flow_id, agent_id: paramAgentId } = useParams();
+  const { chat_id, agent_id: paramAgentId } = useParams();
   const pathname = usePathname();
   const effectiveAgentId = agent_id || paramAgentId;
 
@@ -38,9 +38,9 @@ export default function ChatContainer({
   // ===== LOAD DATA BASED ON MODE =====
   useEffect(() => {
     if (mode === "existing") {
-      if (flow_id) {
-        // For existing flows, load messages and associated agent settings
-        loadMessagesAndSystemPrompt(flow_id);
+      if (chat_id) {
+        // For existing chats, load messages and associated agent settings
+        loadMessagesAndSystemPrompt(chat_id);
       } else if (effectiveAgentId) {
         reset();
         // Use published version for public access, current version for workspace access
@@ -54,7 +54,7 @@ export default function ChatContainer({
     }
   }, [
     mode,
-    flow_id,
+    chat_id,
     effectiveAgentId,
     isPublicAccess,
     loadMessagesAndSystemPrompt,
@@ -109,7 +109,7 @@ export default function ChatContainer({
           <ChatInput
             mode={mode}
             agent_id={effectiveAgentId}
-            onFlowCreated={onFlowCreated}
+            onChatCreated={onChatCreated}
           />
         )}
       </div>

@@ -64,11 +64,11 @@ const usePlaygroundStore = create((set, get) => ({
   },
 
   // ===== LOAD MESSAGES ONLY =====
-  loadMessages: async (flow_id) => {
+  loadMessages: async (chat_id) => {
     try {
       const res = await loadSingleDataAction({
-        table_name: "flows",
-        id: flow_id,
+        table_name: "chats",
+        id: chat_id,
       });
 
       if (res?.error) {
@@ -82,26 +82,26 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== LOAD MESSAGES AND SYSTEM PROMPT (FOR EXISTING FLOWS) =====
-  loadMessagesAndSystemPrompt: async (flow_id) => {
+  // ===== LOAD MESSAGES AND SYSTEM PROMPT (FOR EXISTING CHATS) =====
+  loadMessagesAndSystemPrompt: async (chat_id) => {
     try {
       set({ isLoading: true });
 
-      // Load flow data
-      const flow = await loadSingleDataAction({
-        table_name: "flows",
-        id: flow_id,
+      // Load chat data
+      const chat = await loadSingleDataAction({
+        table_name: "chats",
+        id: chat_id,
       });
 
-      if (flow?.error) {
-        throw flow?.error;
+      if (chat?.error) {
+        throw chat?.error;
       }
 
-      // Load agent settings using bot_id from flow
-      if (flow?.bot_id) {
+      // Load agent settings using bot_id from chat
+      if (chat?.bot_id) {
         try {
           // Try to load current version first (for workspace users)
-          const agentData = await agentStore.getState().loadAgent(flow.bot_id);
+          const agentData = await agentStore.getState().loadAgent(chat.bot_id);
           set({
             systemPrompt: agentData.settings?.system_prompt || "",
             initialMessage:
@@ -117,7 +117,7 @@ const usePlaygroundStore = create((set, get) => ({
             // Fallback to published version (for public access)
             const publishedData = await agentStore
               .getState()
-              .getPublishedVersion(flow.bot_id);
+              .getPublishedVersion(chat.bot_id);
             set({
               systemPrompt: publishedData.settings?.system_prompt || "",
               initialMessage:
@@ -134,7 +134,7 @@ const usePlaygroundStore = create((set, get) => ({
         }
       }
 
-      set({ messages: flow?.messages || [] });
+      set({ messages: chat?.messages || [] });
     } catch (error) {
       console.error("Error loading messages and system prompt:", error);
       throw error;
@@ -143,13 +143,13 @@ const usePlaygroundStore = create((set, get) => ({
     }
   },
 
-  // ===== UPDATE MESSAGES IN FLOW =====
-  updateMessages: async (flow_id, messages) => {
+  // ===== UPDATE MESSAGES IN CHAT =====
+  updateMessages: async (chat_id, messages) => {
     try {
       const res = await updateDataAction({
-        table_name: "flows",
+        table_name: "chats",
         query: {
-          where: { id: flow_id },
+          where: { id: chat_id },
           data: {
             messages,
             updated_at: Date.now(),

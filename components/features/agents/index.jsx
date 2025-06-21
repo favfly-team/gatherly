@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bot, MoreVertical, Pen, Share, Share2, Trash2 } from "lucide-react";
+import { Bot, MoreVertical, Pen, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import agentStore from "@/storage/agent-store";
 import workspaceStore from "@/storage/workspace-store";
