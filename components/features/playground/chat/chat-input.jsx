@@ -9,21 +9,17 @@ import { useParams } from "next/navigation";
 import usePlaygroundStore from "@/storage/playground-store";
 import useChat from "./use-chat";
 
-export default function ChatInput({
-  mode = "existing", // "new" | "existing"
-  agent_id = null,
-  onChatCreated = null,
-}) {
-  // ===== CUSTOM HOOK FOR CHAT LOGIC =====
+export default function ChatInput({ mode = "existing", onChatCreated = null }) {
+  // ===== PARAMS & STATE =====
+  const { chat_id, agent_id } = useParams();
   const { sendMessage } = useChat();
   const { isDone } = usePlaygroundStore();
-  const { chat_id } = useParams();
 
-  const defaultInputMessage = "Hi, start the conversation";
+  const [chat, setChat] = useState(null);
 
-  // ===== LOCAL STATES =====
+  // ===== LOCAL STATE =====
   const [input, setInput] = useState(
-    mode === "existing" ? "" : defaultInputMessage
+    mode === "new" ? "Hi, start the conversation" : ""
   );
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const inputRef = useRef(null);
@@ -35,33 +31,34 @@ export default function ChatInput({
     const currentInput = input;
     setInput("");
 
-    // ===== SET CREATING CHAT STATE FOR NEW CHATS =====
+    // Set creating state for new chat mode (database creation)
     if (mode === "new") {
       setIsCreatingChat(true);
     }
 
     try {
-      const success = await sendMessage({
+      const { success, chat_id: newChatId } = await sendMessage({
         input: currentInput,
-        mode,
+        mode: chat?.mode || mode,
         agent_id,
-        chat_id,
+        chat_id: chat?.chat_id || chat_id,
         onChatCreated,
       });
 
-      if (success) {
-        // ===== RESET TEXTAREA HEIGHT =====
-        if (inputRef.current) {
-          inputRef.current.style.height = "auto";
-        }
+      if (success && newChatId) {
+        setChat({
+          chat_id: newChatId,
+          mode: "existing",
+        });
+      }
+
+      if (success && inputRef.current) {
+        inputRef.current.style.height = "auto";
       } else {
-        // ===== RESTORE INPUT ON FAILURE =====
         setInput(currentInput);
       }
     } finally {
       setIsCreatingChat(false);
-
-      // ===== FOCUS INPUT AFTER DELAY =====
       setTimeout(() => {
         if (inputRef.current) inputRef.current.focus();
       }, 100);

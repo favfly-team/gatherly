@@ -23,11 +23,11 @@ export default function useChat() {
 
   const { createChat } = chatStore();
 
-  // ===== OPTIMIZED MESSAGE SENDER =====
+  // ===== MESSAGE SENDER WITH MODE HANDLING =====
   const sendMessage = useCallback(
     async ({
       input,
-      mode = "existing",
+      mode = "existing", // playground | new | existing
       agent_id = null,
       chat_id = null,
       onChatCreated = null,
@@ -38,78 +38,77 @@ export default function useChat() {
       let currentChatId = chat_id;
 
       try {
-        // ===== ADD USER MESSAGE TO LOCAL STATE IMMEDIATELY =====
+        // ===== UPDATE LOCAL STATE FIRST (ALL MODES) =====
         const newMessages = [...messages, userMessage];
-        setMessages(newMessages); // Update local state first for UI responsiveness
-
+        setMessages(newMessages);
         setLoading(true);
 
-        // ===== CREATE CHAT FOR NEW CHATS =====
+        // ===== HANDLE DATABASE OPERATIONS BASED ON MODE =====
         if (mode === "new" && messages.length === 0 && agent_id) {
-          // Create a temporary name - will be updated by the page component
-          const tempChatName = "New Chat";
-
+          // NEW CHAT MODE: Create new chat in database
           const newChat = await createChat({
-            name: tempChatName,
+            name: "New Chat", // Will be updated by page component
             bot_id: agent_id,
           });
 
           currentChatId = newChat.id;
 
-          // ===== NOTIFY PARENT COMPONENT =====
+          // Notify parent component for URL update
           if (onChatCreated) {
             onChatCreated(newChat.id);
           }
-        }
 
-        // ===== UPDATE MESSAGES IN DATABASE =====
-        if (currentChatId) {
+          // Update messages in database
+          await updateMessages(currentChatId, newMessages);
+        } else if (mode === "existing" && currentChatId) {
+          // EXISTING CHAT MODE: Update existing chat in database
           await updateMessages(currentChatId, newMessages);
         }
 
-        // ===== GET AI RESPONSE =====
+        // PLAYGROUND MODE: Skip database operations (temporary testing)
+
+        // ===== GET AI RESPONSE (ALL MODES) =====
         const aiReply = await fetchOpenAIChat({
           messages: newMessages,
           systemPrompt: `${DEFAULT_PROMPT}\n\n${systemPrompt}`,
         });
 
-        // ===== UPDATE LOCAL STATE WITH AI RESPONSE =====
+        // ===== UPDATE LOCAL STATE WITH AI RESPONSE (ALL MODES) =====
         const finalMessages = [
           ...newMessages,
           { role: "assistant", content: aiReply },
         ];
-        setMessages(finalMessages); // Update local state first
+        setMessages(finalMessages);
 
-        // ===== UPDATE DATABASE WITH AI RESPONSE =====
-        if (currentChatId) {
+        // ===== UPDATE DATABASE WITH AI RESPONSE (ONLY FOR NEW/EXISTING) =====
+        if (mode !== "playground" && currentChatId) {
           await updateMessages(currentChatId, finalMessages);
         }
 
-        // ===== CHECK FOR COMPLETION =====
+        // ===== CHECK FOR COMPLETION (ALL MODES) =====
         if (aiReply.includes("###GATHERLY_DONE###")) {
           setIsDone(true);
         }
 
-        return true;
+        return {
+          success: true,
+          chat_id: currentChatId,
+        };
       } catch (error) {
         console.error("Error sending message:", error);
 
-        // ===== ERROR HANDLING =====
+        // ===== ERROR HANDLING (ALL MODES) =====
         const errorMessage = {
           role: "assistant",
           content: "Sorry, there was an error.",
         };
 
-        // ===== UPDATE LOCAL STATE WITH ERROR =====
-        setMessages([...messages, userMessage, errorMessage]);
+        const messagesWithError = [...messages, userMessage, errorMessage];
+        setMessages(messagesWithError);
 
-        // ===== UPDATE DATABASE WITH ERROR =====
-        if (currentChatId) {
-          await updateMessages(currentChatId, [
-            ...messages,
-            userMessage,
-            errorMessage,
-          ]);
+        // Update database with error (only for new/existing modes)
+        if (mode !== "playground" && currentChatId) {
+          await updateMessages(currentChatId, messagesWithError);
         }
 
         return false;

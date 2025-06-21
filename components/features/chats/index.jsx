@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Share2,
-  Workchat,
   FileDown,
   Copy,
   MoreVertical,
   Pen,
   Trash2,
+  MessageCircle,
 } from "lucide-react";
-import CreateChatModal from "./create-chat-modal";
 import RenameChatModal from "./rename-chat-modal";
 import DeleteChatModal from "./delete-chat-modal";
 import DropdownMenu from "@/components/layout/dropdown-menu";
@@ -124,8 +123,8 @@ const ChatCardItem = ({ chat }) => {
       <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg border border-muted bg-white hover:shadow-lg transition-shadow">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <i className="p-2 rounded-full bg-muted-foreground/10 text-primary">
-              <Workchat />
+            <i className="p-2 rounded-full bg-muted-foreground/10 text-black/80">
+              <MessageCircle />
             </i>
             <span className="font-semibold text-lg">{chat.name}</span>
           </div>

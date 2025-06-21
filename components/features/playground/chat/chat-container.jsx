@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
@@ -9,11 +9,11 @@ import ChatMessage from "./chat-message";
 import ChatInput from "./chat-input";
 
 export default function ChatContainer({
-  mode = "existing", // "new" | "existing"
-  agent_id = null,
   onChatCreated = null,
+  playground = false,
 }) {
-  // ===== INITIALIZE STATES =====
+  // ===== PARAMS & STATE =====
+  const { chat_id, agent_id, workspace_id } = useParams();
   const {
     messages,
     loading,
@@ -25,38 +25,38 @@ export default function ChatContainer({
     initialMessage,
   } = usePlaygroundStore();
 
-  // ===== GET PARAMS AND PATH =====
-  const { chat_id, agent_id: paramAgentId } = useParams();
-  const pathname = usePathname();
-  const effectiveAgentId = agent_id || paramAgentId;
-
-  // ===== DETERMINE IF THIS IS PUBLIC ACCESS =====
-  const isPublicAccess = pathname.startsWith("/chat");
-
   const messagesEndRef = useRef(null);
+
+  // ===== MODE DETECTION =====
+  // 1. Playground mode: /[workspace_id]/agents/[agent_id] - temporary testing, no DB updates
+  // 2. New chat mode: /agent/[agent_id] - create new chat in DB
+  // 3. Existing chat mode: /chat/[chat_id] - load existing chat from DB
+  const isPlaygroundMode =
+    playground && !!workspace_id && !!agent_id && !chat_id;
+  const isNewChatMode = !!agent_id && !workspace_id && !chat_id;
+  const isExistingChatMode = !!chat_id;
 
   // ===== LOAD DATA BASED ON MODE =====
   useEffect(() => {
-    if (mode === "existing") {
-      if (chat_id) {
-        // For existing chats, load messages and associated agent settings
-        loadMessagesAndSystemPrompt(chat_id);
-      } else if (effectiveAgentId) {
-        reset();
-        // Use published version for public access, current version for workspace access
-        loadSystemPrompt(effectiveAgentId, isPublicAccess);
-      }
-    } else if (mode === "new" && effectiveAgentId) {
-      // ===== RESET AND LOAD SYSTEM PROMPT FOR NEW CHATS =====
+    if (isExistingChatMode) {
+      // EXISTING CHAT: Load past messages and agent settings
+      loadMessagesAndSystemPrompt(chat_id);
+    } else if (isNewChatMode) {
+      // NEW CHAT: Reset and load published agent settings (public access)
       reset();
-      // Use published version for public access, current version for workspace access
-      loadSystemPrompt(effectiveAgentId, isPublicAccess);
+      loadSystemPrompt(agent_id, true); // Use published version for public
+    } else if (isPlaygroundMode) {
+      // PLAYGROUND: Reset and load current agent settings (workspace access)
+      reset();
+      loadSystemPrompt(agent_id, false); // Use current version for testing
     }
   }, [
-    mode,
     chat_id,
-    effectiveAgentId,
-    isPublicAccess,
+    agent_id,
+    workspace_id,
+    isPlaygroundMode,
+    isNewChatMode,
+    isExistingChatMode,
     loadMessagesAndSystemPrompt,
     reset,
     loadSystemPrompt,
@@ -64,7 +64,7 @@ export default function ChatContainer({
 
   // ===== AUTO SCROLL & COMPLETION CHECK =====
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
     if (
       messages.length > 0 &&
@@ -74,24 +74,18 @@ export default function ChatContainer({
     }
   }, [messages, loading, setIsDone]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const initialBotMessage = {
-    role: "assistant",
-    content: initialMessage || "Hello! How can I help you today?",
-  };
-
-  // ===== MAIN CHAT INTERFACE =====
+  // ===== RENDER =====
   return (
     <div className="flex flex-col h-full w-full">
       <ScrollArea className="h-full">
         <div className="space-y-4 max-w-screen-md mx-auto py-4">
-          {[initialBotMessage, ...messages].map((msg, i) => (
+          <ChatMessage
+            role="assistant"
+            content={initialMessage || "Hello! How can I help you today?"}
+          />
+          {messages.map((msg, i) => (
             <ChatMessage key={i} {...msg} />
           ))}
-
           {loading && <ChatMessage role="assistant" content="Thinking..." />}
         </div>
         <div ref={messagesEndRef} />
@@ -107,8 +101,13 @@ export default function ChatContainer({
           </div>
         ) : (
           <ChatInput
-            mode={mode}
-            agent_id={effectiveAgentId}
+            mode={
+              isPlaygroundMode
+                ? "playground"
+                : isNewChatMode
+                ? "new"
+                : "existing"
+            }
             onChatCreated={onChatCreated}
           />
         )}
