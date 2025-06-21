@@ -42,7 +42,7 @@ const usePlaygroundStore = create((set, get) => ({
         });
       } else {
         // For workspace access, use current version
-        const data = await agentStore.getState().loadAgentWithVersion(agent_id);
+        const data = await agentStore.getState().loadAgent(agent_id);
         set({
           systemPrompt: data.settings?.system_prompt || "",
           initialMessage:
@@ -101,9 +101,7 @@ const usePlaygroundStore = create((set, get) => ({
       if (flow?.bot_id) {
         try {
           // Try to load current version first (for workspace users)
-          const agentData = await agentStore
-            .getState()
-            .loadAgentWithVersion(flow.bot_id);
+          const agentData = await agentStore.getState().loadAgent(flow.bot_id);
           set({
             systemPrompt: agentData.settings?.system_prompt || "",
             initialMessage:

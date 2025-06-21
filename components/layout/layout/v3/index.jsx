@@ -1,20 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import Button from "@/components/layout/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CircleCheckBig, Users, Loader2, Share2 } from "lucide-react";
+import { CircleCheckBig, Share2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import agentStore from "@/storage/agent-store";
 import userStore from "@/storage/user-store";
-import { handleShareAgent } from "@/components/features/agents";
 
 const AgentLayout = ({ children }) => {
   return (
     <Tabs defaultValue="flows" className="flex flex-col bg-white w-full h-full">
       <Header />
-
       <div className="w-full h-full p-4">{children}</div>
     </Tabs>
   );
@@ -23,18 +21,9 @@ const AgentLayout = ({ children }) => {
 const Header = () => {
   // ===== TABS =====
   const tabs = [
-    {
-      value: "flows",
-      label: "Flows",
-    },
-    {
-      value: "playground",
-      label: "Playground",
-    },
-    {
-      value: "settings",
-      label: "Settings",
-    },
+    { value: "flows", label: "Flows" },
+    { value: "playground", label: "Playground" },
+    { value: "settings", label: "Settings" },
   ];
 
   return (
@@ -57,10 +46,7 @@ const Header = () => {
 
       {/* ===== ACTIONS ===== */}
       <div className="w-1/3 flex justify-end items-center gap-2">
-        {/* ===== SHARE AGENT ===== */}
         <ShareAgent />
-
-        {/* ===== PUBLISH AGENT ===== */}
         <PublishAgent />
       </div>
     </div>
@@ -68,13 +54,13 @@ const Header = () => {
 };
 
 const AgentName = () => {
-  // ===== GET AGENT ID =====
+  // ===== PARAMS =====
   const { agent_id } = useParams();
 
-  // ===== STORES =====
-  const { loadAgentWithVersion } = agentStore();
+  // ===== STORE =====
+  const { loadAgent } = agentStore();
 
-  // ===== LOCAL STATE =====
+  // ===== STATE =====
   const [agentName, setAgentName] = useState("Loading...");
 
   // ===== LOAD AGENT NAME =====
@@ -83,8 +69,8 @@ const AgentName = () => {
       if (!agent_id) return;
 
       try {
-        const data = await loadAgentWithVersion(agent_id);
-        setAgentName(data.bot.name || "Unnamed Agent");
+        const agent = await loadAgent(agent_id);
+        setAgentName(agent.name || "Unnamed Agent");
       } catch (error) {
         console.error("Error loading agent name:", error);
         setAgentName("Unknown Agent");
@@ -92,7 +78,7 @@ const AgentName = () => {
     };
 
     loadAgentName();
-  }, [agent_id, loadAgentWithVersion]);
+  }, [agent_id, loadAgent]);
 
   return (
     <div className="w-1/3">
@@ -102,85 +88,54 @@ const AgentName = () => {
 };
 
 const ShareAgent = () => {
-  // ===== GET AGENT ID =====
-  const { agent_id } = useParams();
-
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => handleShareAgent(agent_id)}
-    >
+    <Button variant="outline" size="sm">
       <Share2 className="h-4 w-4" />
-      Share Agent
+      Share
     </Button>
   );
 };
 
 const PublishAgent = () => {
-  // ===== GET AGENT ID =====
+  // ===== PARAMS =====
   const { agent_id } = useParams();
 
   // ===== STORES =====
-  const {
-    loadAgentWithVersion,
-    publishAgentVersion,
-    getCurrentVersion,
-    isUpdating,
-    currentAgentVersions,
-  } = agentStore();
+  const { loadAgent, publishAgent, agent } = agentStore();
   const { user } = userStore();
 
-  // ===== LOCAL STATE =====
-  const [currentVersion, setCurrentVersion] = useState(null);
+  // ===== STATE =====
   const [isLoading, setIsLoading] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // ===== LOAD AGENT VERSION STATUS =====
+  // ===== LOAD AGENT =====
   useEffect(() => {
-    const loadVersionStatus = async () => {
+    const loadCurrentAgent = async () => {
       if (!agent_id) return;
 
       try {
         setIsLoading(true);
-        const data = await loadAgentWithVersion(agent_id);
-        setCurrentVersion(data.currentVersion);
+        await loadAgent(agent_id);
       } catch (error) {
-        console.error("Error loading agent version:", error);
+        console.error("Error loading agent:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadVersionStatus();
-  }, [agent_id, loadAgentWithVersion]);
-
-  // ===== SYNC WITH STORE'S CURRENT VERSION =====
-  useEffect(() => {
-    if (agent_id && currentAgentVersions[agent_id]) {
-      setCurrentVersion(currentAgentVersions[agent_id]);
-    }
-  }, [agent_id, currentAgentVersions]);
+    loadCurrentAgent();
+  }, [agent_id, loadAgent]);
 
   // ===== HANDLE PUBLISH =====
   const handlePublish = async () => {
-    if (!agent_id || !currentVersion?.id || !user?.id) {
+    if (!agent_id || !user?.id) {
       toast.error("Unable to publish. Please try again.");
       return;
     }
 
     try {
       setIsPublishing(true);
-      await publishAgentVersion(agent_id, currentVersion.id);
-
-      // Update local state
-      setCurrentVersion((prev) => ({
-        ...prev,
-        status: "published",
-        published_at: Date.now(),
-      }));
-
-      // Remove success toast - only show errors
+      await publishAgent(agent_id);
     } catch (error) {
       console.error("Error publishing agent:", error);
       toast.error("Failed to publish agent");
@@ -189,34 +144,20 @@ const PublishAgent = () => {
     }
   };
 
-  // ===== DETERMINE BUTTON STATE =====
-  const isPublished = currentVersion?.status === "published";
-  const isDraft = currentVersion?.status === "draft";
-  const isDisabled = isLoading || !isDraft || isPublishing || isUpdating;
-
-  // ===== LOADING STATE =====
-  if (isLoading) {
-    return (
-      <Button size="sm" disabled>
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading...
-      </Button>
-    );
-  }
+  // ===== BUTTON STATE =====
+  const isPublished = agent?.currentVersion?.status === "published";
+  const isDraft = agent?.currentVersion?.status === "draft";
+  const isDisabled = isLoading || !isDraft || isPublishing;
 
   return (
-    <Button size="sm" disabled={isDisabled} onClick={handlePublish}>
-      {isPublishing ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Publishing...
-        </>
-      ) : (
-        <>
-          <CircleCheckBig className="h-4 w-4" />
-          {isPublished ? "Published" : "Publish"}
-        </>
-      )}
+    <Button
+      size="sm"
+      disabled={isDisabled}
+      onClick={handlePublish}
+      isLoading={isLoading || isPublishing}
+    >
+      <CircleCheckBig className="h-4 w-4" />
+      {isPublished ? "Published" : "Publish"}
     </Button>
   );
 };

@@ -8,44 +8,30 @@ import {
   deleteDataAction,
 } from "@/components/actions/data-actions";
 import sortBy from "sort-by";
-import { toast } from "sonner";
 
 const agentStore = create((set, get) => ({
-  agents: [],
-  isLoading: true,
-  isUpdating: false,
-  isDeleting: false,
-  error: null,
-  currentAgentVersions: {}, // Store versions for loaded agents
+  // ===== STATE =====
+  agents: [], // All agents list
+  agent: null, // Current single agent
 
   // ===== LOAD AGENTS =====
   loadAgents: async (workspace_id) => {
     try {
-      set({ isLoading: true, error: null });
       const res = await loadAllDataAction({
         table_name: "bots",
-        query: {
-          where: {
-            workspace_id,
-          },
-        },
+        query: { where: { workspace_id } },
       });
 
-      if (res?.error) {
-        throw new Error(res?.error);
-      }
+      if (res?.error) throw new Error(res?.error);
 
-      set({
-        agents: res.sort(sortBy("-created_at")) || [],
-        isLoading: false,
-      });
+      set({ agents: res.sort(sortBy("-created_at")) || [] });
     } catch (error) {
       console.error("Error loading agents:", error.message);
-      set({ error: error.message, isLoading: false });
+      throw error;
     }
   },
 
-  // ===== CREATE AGENT WITH INITIAL VERSION =====
+  // ===== CREATE AGENT =====
   createAgent: async (data) => {
     try {
       const {
@@ -56,57 +42,47 @@ const agentStore = create((set, get) => ({
         created_by_id,
       } = data;
 
-      // Validate required fields
-      if (!created_by_id) {
-        throw new Error("User ID is required to create an agent");
-      }
+      if (!created_by_id) throw new Error("User ID is required");
 
-      // Step 1: Create the bot document
-      const botData = {
-        workspace_id, // This should be the workspace table ID, not slug
-        name,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-        // Version IDs will be set after creating the initial version
-        current_version_id: null,
-        published_version_id: null,
-      };
-
+      // Create bot
       const bot = await createDataAction({
         table_name: "bots",
         query: {
-          data: botData,
+          data: {
+            workspace_id,
+            name,
+            created_at: Date.now(),
+            updated_at: Date.now(),
+            current_version_id: null,
+            published_version_id: null,
+          },
         },
       });
 
-      if (bot?.error) {
-        throw new Error(bot?.error);
-      }
+      if (bot?.error) throw new Error(bot?.error);
 
-      // Step 2: Create the initial draft version
-      const versionData = {
-        bot_id: bot.id,
-        settings: {
-          system_prompt: system_prompt || "",
-          initial_message:
-            initial_message || "Hello! How can I help you today?",
-        },
-        status: "draft",
-        created_by_id: created_by_id, // Use actual user ID from users table
-        created_at: Date.now(),
-        updated_at: Date.now(),
-        published_at: null,
-      };
-
+      // Create initial draft version
       const version = await createDataAction({
         table_name: "bot_versions",
         query: {
-          data: versionData,
+          data: {
+            bot_id: bot.id,
+            settings: {
+              system_prompt: system_prompt || "",
+              initial_message:
+                initial_message || "Hello! How can I help you today?",
+            },
+            status: "draft",
+            created_by_id,
+            created_at: Date.now(),
+            updated_at: Date.now(),
+            published_at: null,
+          },
         },
       });
 
       if (version?.error) {
-        // Rollback: Delete the bot if version creation fails
+        // Rollback bot creation
         await deleteDataAction({
           table_name: "bots",
           query: { where: { id: bot.id } },
@@ -114,61 +90,41 @@ const agentStore = create((set, get) => ({
         throw new Error(version?.error);
       }
 
-      // Step 3: Update bot with current_version_id
-      const updatedBot = await updateDataAction({
+      // Update bot with version ID
+      await updateDataAction({
         table_name: "bots",
         query: {
           where: { id: bot.id },
-          data: {
-            current_version_id: version.id,
-            updated_at: Date.now(),
-          },
+          data: { current_version_id: version.id, updated_at: Date.now() },
         },
       });
 
-      if (updatedBot?.error) {
-        throw new Error(updatedBot?.error);
-      }
+      const completeBot = { ...bot, current_version_id: version.id };
 
-      // Combine bot data with version reference for local state
-      const completeBotData = {
-        ...bot,
-        current_version_id: version.id,
-        published_version_id: null,
-      };
-
-      // Update agents list
+      // Update state
       set((state) => ({
-        agents: [completeBotData, ...state.agents],
-        currentAgentVersions: {
-          ...state.currentAgentVersions,
-          [bot.id]: version,
-        },
+        agents: [completeBot, ...state.agents],
       }));
 
-      return completeBotData;
+      return completeBot;
     } catch (error) {
       console.error("Error creating agent:", error.message);
       throw error;
     }
   },
 
-  // ===== LOAD AGENT WITH CURRENT VERSION =====
-  loadAgentWithVersion: async (agent_id) => {
+  // ===== LOAD AGENT =====
+  loadAgent: async (agent_id) => {
     try {
-      // Load bot data
+      // Load bot
       const bot = await loadSingleDataAction({
         table_name: "bots",
         id: agent_id,
       });
 
-      if (bot?.error) {
-        throw new Error(bot?.error);
-      }
-
-      if (!bot.current_version_id) {
+      if (bot?.error) throw new Error(bot?.error);
+      if (!bot.current_version_id)
         throw new Error("Agent has no current version");
-      }
 
       // Load current version
       const currentVersion = await loadSingleDataAction({
@@ -176,82 +132,45 @@ const agentStore = create((set, get) => ({
         id: bot.current_version_id,
       });
 
-      if (currentVersion?.error) {
-        throw new Error(currentVersion?.error);
-      }
+      if (currentVersion?.error) throw new Error(currentVersion?.error);
 
-      // Update local state
-      set((state) => ({
-        currentAgentVersions: {
-          ...state.currentAgentVersions,
-          [agent_id]: currentVersion,
-        },
-      }));
-
-      return {
-        bot,
+      const agentData = {
+        ...bot,
         currentVersion,
         settings: currentVersion.settings,
       };
+
+      set({ agent: agentData });
+      return agentData;
     } catch (error) {
-      console.error("Error loading agent with version:", error.message);
+      console.error("Error loading agent:", error.message);
       throw error;
     }
   },
 
-  // ===== FIND CURRENT DRAFT VERSION FOR BOT =====
-  findCurrentDraftVersion: async (bot_id) => {
+  // ===== UPDATE AGENT AS DRAFT =====
+  updateAgentAsDraft: async (agent_id, settings, created_by_id) => {
     try {
+      if (!created_by_id) throw new Error("User ID is required");
+
+      // Find current draft version
       const versions = await loadAllDataAction({
         table_name: "bot_versions",
         query: {
-          where: {
-            bot_id: bot_id,
-            status: "draft",
-          },
+          where: { bot_id: agent_id, status: "draft" },
         },
       });
 
-      if (versions && versions.length > 0) {
-        // Return the most recent draft (in case there are multiple)
-        return versions.sort((a, b) => b.created_at - a.created_at)[0];
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error finding current draft version:", error.message);
-      return null;
-    }
-  },
-
-  // ===== UPDATE AGENT SETTINGS (UPDATE EXISTING DRAFT OR CREATE NEW) =====
-  updateAgentSettings: async (agent_id, settings, created_by_id) => {
-    try {
-      set({ isUpdating: true });
-
-      // Validate required fields
-      if (!created_by_id) {
-        throw new Error("User ID is required to update agent settings");
-      }
-
-      // Load current bot data
-      const bot = await loadSingleDataAction({
-        table_name: "bots",
-        id: agent_id,
-      });
-
-      if (bot?.error) {
-        throw new Error(bot?.error);
-      }
-
-      // Check if there's already a draft version
-      const existingDraft = await get().findCurrentDraftVersion(agent_id);
+      const existingDraft =
+        versions?.length > 0
+          ? versions.sort((a, b) => b.created_at - a.created_at)[0]
+          : null;
 
       let version;
 
       if (existingDraft) {
-        // Update existing draft version
-        const updateResult = await updateDataAction({
+        // Update existing draft
+        await updateDataAction({
           table_name: "bot_versions",
           query: {
             where: { id: existingDraft.id },
@@ -267,11 +186,6 @@ const agentStore = create((set, get) => ({
           },
         });
 
-        if (updateResult?.error) {
-          throw new Error(updateResult?.error);
-        }
-
-        // Create updated version object for local state
         version = {
           ...existingDraft,
           settings: {
@@ -282,68 +196,67 @@ const agentStore = create((set, get) => ({
           updated_at: Date.now(),
         };
       } else {
-        // Create new draft version
-        const newVersionData = {
-          bot_id: agent_id,
-          settings: {
-            system_prompt: settings.system_prompt || "",
-            initial_message:
-              settings.initial_message || "Hello! How can I help you today?",
-          },
-          status: "draft",
-          created_by_id: created_by_id,
-          created_at: Date.now(),
-          updated_at: Date.now(),
-          published_at: null,
-        };
-
+        // Create new draft
         version = await createDataAction({
           table_name: "bot_versions",
           query: {
-            data: newVersionData,
+            data: {
+              bot_id: agent_id,
+              settings: {
+                system_prompt: settings.system_prompt || "",
+                initial_message:
+                  settings.initial_message ||
+                  "Hello! How can I help you today?",
+              },
+              status: "draft",
+              created_by_id,
+              created_at: Date.now(),
+              updated_at: Date.now(),
+              published_at: null,
+            },
           },
         });
 
-        if (version?.error) {
-          throw new Error(version?.error);
-        }
+        if (version?.error) throw new Error(version?.error);
 
-        // Update bot's current_version_id to point to new draft
+        // Update bot's current_version_id
         await updateDataAction({
           table_name: "bots",
           query: {
             where: { id: agent_id },
-            data: {
-              current_version_id: version.id,
-              updated_at: Date.now(),
-            },
+            data: { current_version_id: version.id, updated_at: Date.now() },
           },
         });
       }
 
-      // Update local state
+      // Update current agent in state
       set((state) => ({
-        currentAgentVersions: {
-          ...state.currentAgentVersions,
-          [agent_id]: version,
-        },
+        agent:
+          state.agent?.id === agent_id
+            ? {
+                ...state.agent,
+                currentVersion: version,
+                settings: version.settings,
+              }
+            : state.agent,
       }));
 
       return version;
     } catch (error) {
-      console.error("Error updating agent settings:", error.message);
+      console.error("Error updating agent as draft:", error.message);
       throw error;
-    } finally {
-      set({ isUpdating: false });
     }
   },
 
-  // ===== PUBLISH AGENT VERSION =====
-  publishAgentVersion: async (agent_id, version_id) => {
+  // ===== PUBLISH AGENT =====
+  publishAgent: async (agent_id) => {
     try {
-      set({ isUpdating: true });
+      const state = get();
+      const version_id = state.agent?.currentVersion?.id;
 
-      // Update the version status to published
+      if (!version_id) throw new Error("No current version to publish");
+
+      // Update version status to published
       await updateDataAction({
         table_name: "bot_versions",
         query: {
@@ -368,203 +281,80 @@ const agentStore = create((set, get) => ({
         },
       });
 
-      // Update local state
-      set((state) => {
-        const updatedAgents = state.agents.map((agent) =>
-          agent.id === agent_id
-            ? { ...agent, published_version_id: version_id }
-            : agent
-        );
-
-        return {
-          agents: updatedAgents,
-          currentAgentVersions: {
-            ...state.currentAgentVersions,
-            [agent_id]: {
-              ...state.currentAgentVersions[agent_id],
-              status: "published",
-              published_at: Date.now(),
-            },
-          },
-        };
-      });
-    } catch (error) {
-      console.error("Error publishing agent version:", error.message);
-      throw error;
-    } finally {
-      set({ isUpdating: false });
-    }
-  },
-
-  // ===== GET PUBLISHED VERSION FOR PUBLIC ACCESS =====
-  getPublishedVersion: async (agent_id) => {
-    try {
-      // Load bot data
-      const bot = await loadSingleDataAction({
-        table_name: "bots",
-        id: agent_id,
-      });
-
-      if (bot?.error) {
-        throw new Error(bot?.error);
-      }
-
-      if (!bot.published_version_id) {
-        throw new Error("Agent has no published version");
-      }
-
-      // Load published version
-      const publishedVersion = await loadSingleDataAction({
-        table_name: "bot_versions",
-        id: bot.published_version_id,
-      });
-
-      if (publishedVersion?.error) {
-        throw new Error(publishedVersion?.error);
-      }
-
-      return {
-        bot,
-        publishedVersion,
-        settings: publishedVersion.settings,
-      };
-    } catch (error) {
-      console.error("Error loading published version:", error.message);
-      throw error;
-    }
-  },
-
-  // ===== UPDATE AGENT BASIC INFO (NAME ONLY) =====
-  updateAgent: async (agent_id, data) => {
-    try {
-      set({ isUpdating: true });
-      const res = await updateDataAction({
-        table_name: "bots",
-        query: {
-          where: {
-            id: agent_id,
-          },
-          data: {
-            ...data,
-            updated_at: Date.now(),
-          },
-        },
-      });
-
-      if (res?.error) {
-        throw new Error(res?.error);
-      }
-
-      // Update local state
+      // Update state
       set((state) => ({
+        agent:
+          state.agent?.id === agent_id
+            ? {
+                ...state.agent,
+                published_version_id: version_id,
+                currentVersion: {
+                  ...state.agent.currentVersion,
+                  status: "published",
+                  published_at: Date.now(),
+                },
+              }
+            : state.agent,
         agents: state.agents.map((agent) =>
           agent.id === agent_id
-            ? { ...agent, ...data, updated_at: Date.now() }
+            ? { ...agent, published_version_id: version_id }
             : agent
         ),
       }));
     } catch (error) {
-      console.error("Error updating agent:", error.message);
+      console.error("Error publishing agent:", error.message);
       throw error;
-    } finally {
-      set({ isUpdating: false });
     }
   },
 
-  // ===== DELETE AGENT AND ALL VERSIONS =====
+  // ===== DELETE AGENT =====
   deleteAgent: async (agent_id) => {
     try {
-      set({ isDeleting: true });
-
-      // First, load all flows for this agent
+      // Delete all flows
       const flows = await loadAllDataAction({
         table_name: "flows",
-        query: {
-          where: {
-            bot_id: agent_id,
-          },
-        },
+        query: { where: { bot_id: agent_id } },
       });
 
-      if (flows?.error) {
-        throw new Error(flows?.error);
-      }
-
-      // Delete all flows
-      if (flows && flows.length > 0) {
+      if (flows?.length > 0) {
         for (const flow of flows) {
-          const deleteFlowRes = await deleteDataAction({
+          await deleteDataAction({
             table_name: "flows",
-            query: {
-              where: {
-                id: flow.id,
-              },
-            },
+            query: { where: { id: flow.id } },
           });
-
-          if (deleteFlowRes?.error) {
-            throw new Error(deleteFlowRes?.error);
-          }
         }
       }
 
-      // Load and delete all bot versions
+      // Delete all versions
       const versions = await loadAllDataAction({
         table_name: "bot_versions",
-        query: {
-          where: {
-            bot_id: agent_id,
-          },
-        },
+        query: { where: { bot_id: agent_id } },
       });
 
-      if (versions && versions.length > 0) {
+      if (versions?.length > 0) {
         for (const version of versions) {
           await deleteDataAction({
             table_name: "bot_versions",
-            query: {
-              where: {
-                id: version.id,
-              },
-            },
+            query: { where: { id: version.id } },
           });
         }
       }
 
-      // Finally, delete the bot
-      const res = await deleteDataAction({
+      // Delete bot
+      await deleteDataAction({
         table_name: "bots",
-        query: {
-          where: {
-            id: agent_id,
-          },
-        },
+        query: { where: { id: agent_id } },
       });
 
-      if (res?.error) {
-        throw new Error(res?.error);
-      }
-
-      // Remove from local state
+      // Update state
       set((state) => ({
         agents: state.agents.filter((agent) => agent.id !== agent_id),
-        currentAgentVersions: {
-          ...state.currentAgentVersions,
-          [agent_id]: undefined,
-        },
+        agent: state.agent?.id === agent_id ? null : state.agent,
       }));
     } catch (error) {
       console.error("Error deleting agent:", error.message);
       throw error;
-    } finally {
-      set({ isDeleting: false });
     }
-  },
-
-  // ===== GET CURRENT VERSION FROM LOCAL STATE =====
-  getCurrentVersion: (agent_id) => {
-    const state = get();
-    return state.currentAgentVersions[agent_id];
   },
 }));
 
