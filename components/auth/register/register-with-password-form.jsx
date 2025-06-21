@@ -98,12 +98,17 @@ const RegisterWithPasswordForm = () => {
       const res = await createUserAction(values);
 
       if (res.error) {
-        throw res.error;
+        // Handle Firebase authentication errors
+        const errorMessage =
+          res.error.message || "Registration failed. Please try again.";
+        toast.error(errorMessage);
+        return;
       }
 
       // Check if we have a valid user and workspace
       if (!res.user || !res.workspace?.id) {
-        throw new Error("Registration failed. Please try again.");
+        toast.error("Registration failed. Please try again.");
+        return;
       }
 
       // Show success message
@@ -112,20 +117,16 @@ const RegisterWithPasswordForm = () => {
       // Redirect to workspace
       router.push(`/${res.workspace.slug}`);
     } catch (error) {
-      console.error("Registration error:", error.message);
+      console.error("Registration error:", error);
 
-      // Handle specific Firebase auth errors
-      if (error.code === "auth/email-already-in-use") {
-        toast.error(
-          "This email is already registered. Please use a different email."
-        );
-      } else if (error.code === "auth/weak-password") {
-        toast.error("Password is too weak. Please use a stronger password.");
-      } else if (error.code === "auth/invalid-email") {
-        toast.error("Invalid email address. Please check and try again.");
-      } else {
-        toast.error(error.message || "Registration failed. Please try again.");
+      // Handle unexpected errors
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (error.message) {
+        errorMessage = error.message;
       }
+
+      toast.error(errorMessage);
     }
   };
 

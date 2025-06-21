@@ -1,7 +1,7 @@
 import { auth } from "@/firebase/firebase-client";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { createDataAction } from "@/components/actions/data-actions";
-import { errorHandler } from "@/hooks/error";
+import { handleFirebaseError } from "@/utils/firebase-errors";
 import { slugify } from "@/hooks/custom/use-formatters";
 
 const createUserAction = async (data) => {
@@ -73,7 +73,7 @@ const createUserAction = async (data) => {
     };
   } catch (error) {
     console.error("Error in createUserAction:", error.message);
-    return errorHandler(error);
+    return handleFirebaseError(error);
   }
 };
 

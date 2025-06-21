@@ -114,6 +114,29 @@ const workspaceStore = create((set, get) => ({
     }
   },
 
+  // ===== GET WORKSPACE BY SLUG =====
+  getWorkspaceBySlug: async (slug) => {
+    try {
+      const workspaces = await loadAllDataAction({
+        table_name: "workspaces",
+        query: {
+          where: {
+            slug: slug,
+          },
+        },
+      });
+
+      if (workspaces && workspaces.length > 0) {
+        return workspaces[0];
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error getting workspace by slug:", error.message);
+      return null;
+    }
+  },
+
   // ===== GET WORKSPACE BY ID =====
   getWorkspaceById: (workspace_id) => {
     const { workspaces } = get();

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
@@ -25,9 +25,13 @@ export default function ChatContainer({
     initialMessage,
   } = usePlaygroundStore();
 
-  // ===== GET PARAMS =====
+  // ===== GET PARAMS AND PATH =====
   const { flow_id, agent_id: paramAgentId } = useParams();
+  const pathname = usePathname();
   const effectiveAgentId = agent_id || paramAgentId;
+
+  // ===== DETERMINE IF THIS IS PUBLIC ACCESS =====
+  const isPublicAccess = pathname.startsWith("/chat");
 
   const messagesEndRef = useRef(null);
 
@@ -35,20 +39,24 @@ export default function ChatContainer({
   useEffect(() => {
     if (mode === "existing") {
       if (flow_id) {
+        // For existing flows, load messages and associated agent settings
         loadMessagesAndSystemPrompt(flow_id);
       } else if (effectiveAgentId) {
         reset();
-        loadSystemPrompt(effectiveAgentId);
+        // Use published version for public access, current version for workspace access
+        loadSystemPrompt(effectiveAgentId, isPublicAccess);
       }
     } else if (mode === "new" && effectiveAgentId) {
       // ===== RESET AND LOAD SYSTEM PROMPT FOR NEW CHATS =====
       reset();
-      loadSystemPrompt(effectiveAgentId);
+      // Use published version for public access, current version for workspace access
+      loadSystemPrompt(effectiveAgentId, isPublicAccess);
     }
   }, [
     mode,
     flow_id,
     effectiveAgentId,
+    isPublicAccess,
     loadMessagesAndSystemPrompt,
     reset,
     loadSystemPrompt,
@@ -72,7 +80,7 @@ export default function ChatContainer({
 
   const initialBotMessage = {
     role: "assistant",
-    content: initialMessage,
+    content: initialMessage || "Hello! How can I help you today?",
   };
 
   // ===== MAIN CHAT INTERFACE =====

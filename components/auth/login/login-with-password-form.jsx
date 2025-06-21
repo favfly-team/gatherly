@@ -62,19 +62,38 @@ const LoginWithPasswordForm = () => {
       const res = await loginWithPasswordAction(values);
 
       if (res?.error) {
-        throw res.error;
+        // Handle Firebase authentication errors
+        const errorMessage =
+          res.error.message || "Login failed. Please try again.";
+        toast.error(errorMessage);
+        return;
       }
 
       const slug = res?.workspaces?.[0]?.slug;
 
       if (!slug) {
-        throw new Error("No workspace found after sign-in.");
+        toast.error(
+          "No workspace found after sign-in. Please contact support."
+        );
+        return;
       }
 
+      // Show success message before redirect
+      toast.success("Login successful! Redirecting...");
+
+      // Redirect to workspace
       window.location.href = `/${slug}`;
     } catch (error) {
-      console.error("Login error:", error.message);
-      toast.error(error.message);
+      console.error("Login error:", error);
+
+      // Handle different types of errors
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 

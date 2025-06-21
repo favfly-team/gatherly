@@ -6,15 +6,19 @@ import usePlaygroundStore from "@/storage/playground-store";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams } from "next/navigation";
 import agentStore from "@/storage/agent-store";
+import userStore from "@/storage/user-store";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export default function PromptPanel() {
-  // ===== INITIALIZE AGENT STORE =====
-  const { updateAgent, isUpdating } = agentStore();
+  // ===== INITIALIZE STORES =====
+  const { updateAgentSettings, isUpdating } = agentStore();
+  const { user } = userStore();
 
   // ===== INITIALIZE PLAYGROUND STORE =====
   const {
     systemPrompt,
+    initialMessage,
     setSystemPrompt,
     resetChat,
     resetAll,
@@ -27,8 +31,54 @@ export default function PromptPanel() {
 
   // ===== LOAD AGENT =====
   useEffect(() => {
-    loadSystemPrompt(agent_id);
-  }, []);
+    if (agent_id) {
+      // Load current version for workspace access (not published)
+      loadSystemPrompt(agent_id, false);
+    }
+  }, [agent_id, loadSystemPrompt]);
+
+  // ===== SAVE SYSTEM PROMPT AS NEW VERSION =====
+  const handleSavePrompt = async () => {
+    if (!agent_id || !user?.id) {
+      toast.error("User not authenticated");
+      return;
+    }
+
+    try {
+      await updateAgentSettings(
+        agent_id,
+        {
+          system_prompt: systemPrompt,
+          initial_message: initialMessage || "Hello! How can I help you today!",
+        },
+        user.id // Pass actual user ID from users table
+      );
+      // Success message is now handled in the store based on whether
+      // it's updating existing draft or creating new draft
+    } catch (error) {
+      console.error("Error saving system prompt:", error);
+      toast.error("Failed to save system prompt");
+    }
+  };
+
+  // ===== RESET CHAT ONLY =====
+  const handleResetChat = () => {
+    resetChat();
+    toast.success("Chat reset");
+  };
+
+  // ===== RESET ALL (RELOAD SYSTEM PROMPT AND RESET CHAT) =====
+  const handleResetAll = async () => {
+    if (agent_id) {
+      try {
+        await resetAll(agent_id, false); // Use current version, not published
+        toast.success("Reset to latest agent settings");
+      } catch (error) {
+        console.error("Error resetting:", error);
+        toast.error("Failed to reset agent settings");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full p-4 border-r bg-muted/50">
@@ -38,31 +88,25 @@ export default function PromptPanel() {
           <Button
             variant="default"
             size="sm"
-            disabled={isUpdating}
-            onClick={() => {
-              updateAgent(agent_id, { system_prompt: systemPrompt });
-            }}
+            disabled={isUpdating || !systemPrompt.trim()}
+            onClick={handleSavePrompt}
           >
             {isUpdating ? <Loader2 className="animate-spin" /> : <Save />}
-            Save to agent
+            Save as Draft
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              resetChat();
-            }}
-            title="Restart chat"
+            onClick={handleResetChat}
+            title="Clear chat messages"
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              resetAll(agent_id);
-            }}
-            title="Restart all"
+            onClick={handleResetAll}
+            title="Reload agent settings and clear chat"
           >
             <RotateCcw className="w-4 h-4" />
           </Button>
@@ -79,7 +123,7 @@ export default function PromptPanel() {
           className="w-full h-full p-2 rounded border bg-background resize-none"
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
-          placeholder="Enter system prompt"
+          placeholder="Enter system prompt that defines how your agent should behave and respond to users..."
         />
       )}
     </div>

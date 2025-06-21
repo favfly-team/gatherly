@@ -11,7 +11,6 @@ workspaces [collection]
 │   ├── name: string
 │   ├── slug: string
 │   ├── workspace_members: array [user_id1, user_id2, ...] // For quick access
-│   ├── owner_id: string [ref: > users.id]
 │   ├── created_at: timestamp
 │   ├── updated_at: timestamp
 
@@ -28,10 +27,24 @@ bots [collection]
 ├── {botId} [document]
 │   ├── workspace_id: string [ref: > workspaces.id]
 │   ├── name: string
-│   ├── system_prompt: string
-│   ├── initial_message: string // Optional initial message for new chats
+│   ├── current_version_id: string [ref: > bot_versions.id]
+│   ├── published_version_id: string [ref: > bot_versions.id]
 │   ├── created_at: timestamp
 │   ├── updated_at: timestamp
+
+bot_versions [collection]
+├── {versionId} [document]
+│   ├── bot_id: string [ref: > bots.id]
+│   ├── settings: object {
+│   │   ├── system_prompt: string
+│   │   └── initial_message: string
+│   │}
+│   ├── status: string // "draft" | "published" | "archived"
+│   ├── created_by_id: string [ref: > users.id]
+│   ├── created_at: timestamp
+│   ├── updated_at: timestamp
+│   ├── published_at: timestamp
+
 
 flows [collection]
 ├── {flowId} [document]

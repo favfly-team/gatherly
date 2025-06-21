@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Bot, MoreVertical, Pen, Share, Share2, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import agentStore from "@/storage/agent-store";
+import workspaceStore from "@/storage/workspace-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import DropdownMenu from "@/components/layout/dropdown-menu";
 import RenameAgentModal from "./rename-agent-modal";
@@ -16,15 +17,37 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Agents = () => {
   // ======= INITIALIZE PARAMS ========
-  const { workspace_id } = useParams();
+  const { workspace_id } = useParams(); // This is actually the workspace slug
 
-  // ======= INITIALIZE STORE ========
+  // ======= INITIALIZE STORES ========
   const { agents, isLoading, loadAgents } = agentStore();
+  const { getWorkspaceBySlug } = workspaceStore();
+
+  // ======= LOCAL STATE ========
+  const [currentWorkspace, setCurrentWorkspace] = useState(null);
 
   // ======= LOAD AGENTS ========
   useEffect(() => {
-    loadAgents(workspace_id);
-  }, [workspace_id, loadAgents]);
+    const loadData = async () => {
+      try {
+        // Convert workspace slug to ID
+        const workspace = await getWorkspaceBySlug(workspace_id);
+        if (workspace) {
+          setCurrentWorkspace(workspace);
+          // Load agents using actual workspace ID
+          loadAgents(workspace.id);
+        } else {
+          console.error("Workspace not found for slug:", workspace_id);
+        }
+      } catch (error) {
+        console.error("Error loading workspace and agents:", error);
+      }
+    };
+
+    if (workspace_id) {
+      loadData();
+    }
+  }, [workspace_id, loadAgents, getWorkspaceBySlug]);
 
   if (isLoading) {
     return (

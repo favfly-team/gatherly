@@ -4,7 +4,7 @@ import {
   findUniqueDataAction,
   loadAllDataAction,
 } from "@/components/actions/data-actions";
-import { errorHandler } from "@/hooks/error";
+import { handleFirebaseError } from "@/utils/firebase-errors";
 
 const loginWithPasswordAction = async (values) => {
   try {
@@ -51,7 +51,7 @@ const loginWithPasswordAction = async (values) => {
     };
   } catch (error) {
     console.error("Login error:", error.message);
-    return errorHandler(error);
+    return handleFirebaseError(error);
   }
 };
 
