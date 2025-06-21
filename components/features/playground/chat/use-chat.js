@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import usePlaygroundStore from "@/storage/playground-store";
 import chatStore from "@/storage/chat-store";
-import { fetchOpenAIChat } from "@/components/actions/openai";
+import { fetchOpenAIChat, generateChatName } from "@/components/actions/openai";
 
 const DEFAULT_PROMPT = `
 When, and only when, you have collected every piece of information you need from the user, end your reply with the single line:
@@ -21,7 +21,7 @@ export default function useChat() {
     setIsDone,
   } = usePlaygroundStore();
 
-  const { createChat } = chatStore();
+  const { createChat, updateChat } = chatStore();
 
   // ===== MESSAGE SENDER WITH MODE HANDLING =====
   const sendMessage = useCallback(
@@ -32,7 +32,7 @@ export default function useChat() {
       chat_id = null,
       onChatCreated = null,
     }) => {
-      if (!input?.trim() || loading) return false;
+      if (!input?.trim() || loading) return { success: false };
 
       const userMessage = { role: "user", content: input };
       let currentChatId = chat_id;
@@ -47,11 +47,18 @@ export default function useChat() {
         if (mode === "new" && messages.length === 0 && agent_id) {
           // NEW CHAT MODE: Create new chat in database
           const newChat = await createChat({
-            name: "New Chat", // Will be updated by page component
+            name: "New Chat", // Temporary name
             bot_id: agent_id,
           });
 
           currentChatId = newChat.id;
+
+          // ===== UPDATE CHAT NAME WITH ID =====
+          const chatNameWithId = `chat-${currentChatId.substring(0, 8)}`;
+          await updateChat(currentChatId, {
+            name: chatNameWithId,
+            updated_at: Date.now(),
+          });
 
           // Notify parent component for URL update
           if (onChatCreated) {
@@ -64,7 +71,6 @@ export default function useChat() {
           // EXISTING CHAT MODE: Update existing chat in database
           await updateMessages(currentChatId, newMessages);
         }
-
         // PLAYGROUND MODE: Skip database operations (temporary testing)
 
         // ===== GET AI RESPONSE (ALL MODES) =====
@@ -88,6 +94,24 @@ export default function useChat() {
         // ===== CHECK FOR COMPLETION (ALL MODES) =====
         if (aiReply.includes("###GATHERLY_DONE###")) {
           setIsDone(true);
+
+          // ===== UPDATE CHAT NAME WITH AI-GENERATED NAME (ONLY FOR NEW/EXISTING) =====
+          if (
+            mode !== "playground" &&
+            currentChatId &&
+            finalMessages.length > 2
+          ) {
+            try {
+              const generatedName = await generateChatName(finalMessages);
+              await updateChat(currentChatId, {
+                name: generatedName,
+                updated_at: Date.now(),
+              });
+            } catch (error) {
+              console.error("Error generating chat name:", error);
+              // Keep the existing name if generation fails
+            }
+          }
         }
 
         return {
@@ -111,7 +135,7 @@ export default function useChat() {
           await updateMessages(currentChatId, messagesWithError);
         }
 
-        return false;
+        return { success: false };
       } finally {
         setLoading(false);
       }
@@ -125,6 +149,7 @@ export default function useChat() {
       setLoading,
       setIsDone,
       createChat,
+      updateChat,
     ]
   );
 
