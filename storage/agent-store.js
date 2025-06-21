@@ -146,7 +146,6 @@ const agentStore = create((set, get) => ({
         },
       }));
 
-      toast.success("Agent created successfully");
       return completeBotData;
     } catch (error) {
       console.error("Error creating agent:", error.message);
@@ -282,8 +281,6 @@ const agentStore = create((set, get) => ({
           },
           updated_at: Date.now(),
         };
-
-        toast.success("Draft updated successfully");
       } else {
         // Create new draft version
         const newVersionData = {
@@ -322,8 +319,6 @@ const agentStore = create((set, get) => ({
             },
           },
         });
-
-        toast.success("New draft created successfully");
       }
 
       // Update local state
@@ -393,8 +388,6 @@ const agentStore = create((set, get) => ({
           },
         };
       });
-
-      toast.success("Agent version published successfully");
     } catch (error) {
       console.error("Error publishing agent version:", error.message);
       throw error;
@@ -470,8 +463,6 @@ const agentStore = create((set, get) => ({
             : agent
         ),
       }));
-
-      toast.success("Agent updated successfully");
     } catch (error) {
       console.error("Error updating agent:", error.message);
       throw error;
@@ -562,8 +553,6 @@ const agentStore = create((set, get) => ({
           [agent_id]: undefined,
         },
       }));
-
-      toast.success("Agent deleted successfully");
     } catch (error) {
       console.error("Error deleting agent:", error.message);
       throw error;
