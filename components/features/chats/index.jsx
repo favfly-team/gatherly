@@ -4,13 +4,11 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  Share2,
-  FileDown,
-  Copy,
   MoreVertical,
   Pen,
   Trash2,
   MessageCircle,
+  FileText,
 } from "lucide-react";
 import RenameChatModal from "./rename-chat-modal";
 import DeleteChatModal from "./delete-chat-modal";
@@ -18,7 +16,7 @@ import DropdownMenu from "@/components/layout/dropdown-menu";
 import chatStore from "@/storage/chat-store";
 import SyncLoading from "@/components/layout/loading/sync-loading";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { downloadChatPDF } from "@/lib/pdf-generator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -58,19 +56,6 @@ const ChatCardItem = ({ chat }) => {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-
-  // ===== COPY ALL CONVERSATION =====
-  const copyAllChatConversation = () => {
-    const messages = chat.messages;
-
-    const conversation = messages.map((message) => {
-      return `${message.role}: ${message.content}`;
-    });
-
-    navigator.clipboard.writeText(conversation.join("\n\n"));
-
-    toast.success("Conversation copied to clipboard");
-  };
 
   // ===== DOWNLOAD PDF =====
   const handleDownloadPDF = async () => {
@@ -133,33 +118,11 @@ const ChatCardItem = ({ chat }) => {
               variant="ghost"
               size="icon"
               className="[&_svg]:size-5"
-              onClick={copyAllChatConversation}
-              title="Copy conversation"
-            >
-              <Copy />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="[&_svg]:size-5"
               onClick={handleDownloadPDF}
               disabled={isDownloading}
               title="Download as PDF"
             >
-              <FileDown />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="[&_svg]:size-5"
-              onClick={() => {
-                const url = `${window.location.origin}/chat/${chat.id}`;
-                navigator.clipboard.writeText(url);
-                toast.success("Chat URL copied to clipboard");
-              }}
-              title="Share chat"
-            >
-              <Share2 />
+              <FileText />
             </Button>
 
             {/* // ===== DROPDOWN MENU ===== */}
@@ -170,19 +133,12 @@ const ChatCardItem = ({ chat }) => {
             />
           </div>
         </div>
-        <div className="flex items-center text-sm text-muted-foreground gap-4 mt-2">
-          <span>
-            <span className="font-medium">Date:</span>{" "}
-            {chat?.created_at
-              ? format(new Date(chat.created_at), "dd/MM/yyyy")
-              : "-"}
-          </span>
-          <span>
-            <span className="font-medium">Expiry:</span>{" "}
-            {chat?.expires_at
-              ? format(new Date(chat.expires_at), "dd/MM/yyyy")
-              : "-"}
-          </span>
+        <div className="flex justify-end items-center text-xs text-muted-foreground gap-4 mt-2">
+          {chat?.created_at
+            ? formatDistanceToNow(new Date(chat.created_at), {
+                addSuffix: true,
+              })
+            : "-"}
         </div>
       </Card>
 

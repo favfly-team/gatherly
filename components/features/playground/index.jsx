@@ -9,7 +9,7 @@ export default function PlaygroundChat() {
       <div className="w-1/2 h-full">
         <PromptPanel />
       </div>
-      <div className="w-1/2 h-[calc(100vh-90px)]">
+      <div className="w-1/2 h-[calc(100vh-90px)] p-4">
         <ChatPanel playground={true} />
       </div>
     </div>
