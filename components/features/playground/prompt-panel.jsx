@@ -1,21 +1,21 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { RefreshCw, RotateCcw, Save, Loader2 } from "lucide-react";
+import Button from "@/components/layout/button";
+import { RefreshCw, RotateCcw, Save } from "lucide-react";
 import usePlaygroundStore from "@/storage/playground-store";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams } from "next/navigation";
 import agentStore from "@/storage/agent-store";
 import userStore from "@/storage/user-store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function PromptPanel() {
-  // ===== INITIALIZE STORES =====
-  const { updateAgentSettings, isUpdating } = agentStore();
+  // ===== STORES =====
+  const { updateAgentAsDraft } = agentStore();
   const { user } = userStore();
 
-  // ===== INITIALIZE PLAYGROUND STORE =====
+  // ===== PLAYGROUND STORE =====
   const {
     systemPrompt,
     initialMessage,
@@ -26,8 +26,11 @@ export default function PromptPanel() {
     loadSystemPrompt,
   } = usePlaygroundStore();
 
-  // ===== GET AGENT ID =====
+  // ===== PARAMS =====
   const { agent_id } = useParams();
+
+  // ===== STATE =====
+  const [isSaving, setIsSaving] = useState(false);
 
   // ===== LOAD AGENT =====
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function PromptPanel() {
     }
   }, [agent_id, loadSystemPrompt]);
 
-  // ===== SAVE SYSTEM PROMPT AS NEW VERSION =====
+  // ===== SAVE AS DRAFT =====
   const handleSavePrompt = async () => {
     if (!agent_id || !user?.id) {
       toast.error("User not authenticated");
@@ -45,19 +48,21 @@ export default function PromptPanel() {
     }
 
     try {
-      await updateAgentSettings(
+      setIsSaving(true);
+      await updateAgentAsDraft(
         agent_id,
         {
           system_prompt: systemPrompt,
           initial_message: initialMessage || "Hello! How can I help you today!",
         },
-        user.id // Pass actual user ID from users table
+        user.id
       );
-      // Success message is now handled in the store based on whether
-      // it's updating existing draft or creating new draft
+      toast.success("Saved as draft");
     } catch (error) {
       console.error("Error saving system prompt:", error);
       toast.error("Failed to save system prompt");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -67,7 +72,7 @@ export default function PromptPanel() {
     toast.success("Chat reset");
   };
 
-  // ===== RESET ALL (RELOAD SYSTEM PROMPT AND RESET CHAT) =====
+  // ===== RESET ALL =====
   const handleResetAll = async () => {
     if (agent_id) {
       try {
@@ -85,40 +90,43 @@ export default function PromptPanel() {
       <div className="flex justify-between items-center gap-2 mb-4">
         <label className="font-semibold">System prompt</label>
         <div className="flex gap-2">
+          {/* ===== SAVE ===== */}
           <Button
             variant="default"
             size="sm"
-            disabled={isUpdating || !systemPrompt.trim()}
+            disabled={!systemPrompt.trim() || isSaving}
             onClick={handleSavePrompt}
+            isLoading={isSaving}
+            icon={<Save />}
           >
-            {isUpdating ? <Loader2 className="animate-spin" /> : <Save />}
-            Save as Draft
+            Save
           </Button>
+
+          {/* ===== RESET CHAT ===== */}
           <Button
             variant="outline"
             size="sm"
             onClick={handleResetChat}
             title="Clear chat messages"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+            icon={<RefreshCw />}
+          />
+
+          {/* ===== RESET ALL ===== */}
           <Button
             variant="outline"
             size="sm"
             onClick={handleResetAll}
             title="Reload agent settings and clear chat"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
+            icon={<RotateCcw />}
+          />
         </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-full bg-white border rounded-md">
-          <Loader2 className="animate-spin" />
+          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       ) : (
-        // ===== SYSTEM PROMPT =====
         <Textarea
           className="w-full h-full p-2 rounded border bg-background resize-none"
           value={systemPrompt}

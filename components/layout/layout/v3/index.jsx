@@ -155,8 +155,8 @@ const PublishAgent = () => {
       disabled={isDisabled}
       onClick={handlePublish}
       isLoading={isLoading || isPublishing}
+      icon={<CircleCheckBig />}
     >
-      <CircleCheckBig className="h-4 w-4" />
       {isPublished ? "Published" : "Publish"}
     </Button>
   );
