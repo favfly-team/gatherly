@@ -52,7 +52,6 @@ const workspaceStore = create((set, get) => ({
           data: {
             ...data,
             workspace_members: [user_id], // Add creator to members array
-            owner_id: user_id, // Track the owner
             created_at: Date.now(),
             updated_at: Date.now(),
           },

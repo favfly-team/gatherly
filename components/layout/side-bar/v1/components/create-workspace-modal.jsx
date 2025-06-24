@@ -12,11 +12,14 @@ import { loadAllDataAction } from "@/components/actions/data-actions";
 import { setCookie } from "@/components/actions/set-cookies";
 import workspaceStore from "@/storage/workspace-store";
 import userStore from "@/storage/user-store";
+import memberStore from "@/storage/member-store";
 
 const CreateWorkspaceModal = ({ isOpen, setIsOpen }) => {
   // ===== INITIALIZE HOOKS =====
   const router = useRouter();
   const { createWorkspace } = workspaceStore();
+  const { addMemberToWorkspace } = memberStore();
+
   const { user } = userStore();
 
   // ===== HELPER FUNCTION TO CREATE SLUG =====
@@ -92,12 +95,17 @@ const CreateWorkspaceModal = ({ isOpen, setIsOpen }) => {
       const workspaceData = {
         name: values.name,
         slug: slug,
-        description: "", // Optional description field
       };
 
       const newWorkspace = await createWorkspace(workspaceData, user.id);
 
       if (newWorkspace) {
+        const newMember = await addMemberToWorkspace(
+          newWorkspace.id,
+          user.id,
+          "owner"
+        );
+
         setIsOpen(false);
         form.reset();
         toast.success("Workspace created successfully!");

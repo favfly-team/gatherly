@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import AlertModal from "@/components/layout/modal/alert-modal";
 import memberStore from "@/storage/member-store";
 import userStore from "@/storage/user-store";
-import { loadAllDataAction } from "@/components/actions/data-actions";
+import { loadSingleDataAction } from "@/components/actions/data-actions";
 
 const TeamManagement = () => {
   // ======= INITIALIZE PARAMS ========
@@ -34,8 +34,7 @@ const TeamManagement = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get workspace by slug to get the workspace ID
-        const workspaces = await loadAllDataAction({
+        const workspace = await loadSingleDataAction({
           table_name: "workspaces",
           query: {
             where: {
@@ -44,9 +43,8 @@ const TeamManagement = () => {
           },
         });
 
-        if (workspaces && workspaces.length > 0) {
-          // Load workspace members using the workspace ID
-          await loadWorkspaceMembers(workspaces[0].id);
+        if (workspace) {
+          await loadWorkspaceMembers(workspace.id);
         }
       } catch (error) {
         console.error("Error loading workspace data:", error);
@@ -56,7 +54,7 @@ const TeamManagement = () => {
     if (workspace_id) {
       loadData();
     }
-  }, [workspace_id, loadWorkspaceMembers]);
+  }, [workspace_id]);
 
   // ======= GET CURRENT USER MEMBER INFO ========
   useEffect(() => {
