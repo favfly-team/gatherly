@@ -18,9 +18,7 @@ export default function ChatInput({ mode = "existing", onChatCreated = null }) {
   const [chat, setChat] = useState(null);
 
   // ===== LOCAL STATE =====
-  const [input, setInput] = useState(
-    mode === "new" ? "Hi, start the conversation" : ""
-  );
+  const [input, setInput] = useState(mode === "new" ? "" : "");
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const inputRef = useRef(null);
 
