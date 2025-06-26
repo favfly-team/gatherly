@@ -174,7 +174,7 @@ const AddTeamMember = () => {
       });
 
       if (data?.error) {
-        throw new Error(data.error);
+        throw data.error;
       }
 
       toast.success("Team member created and added successfully");
