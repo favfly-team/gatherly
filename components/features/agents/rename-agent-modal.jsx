@@ -5,17 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useParams } from "next/navigation";
 import Dialog from "@/components/layout/dialog/dialog";
 import Form from "@/components/layout/form-fields/form";
 import agentStore from "@/storage/agent-store";
 
 const RenameAgentModal = ({ agent, isOpen, setIsOpen }) => {
-  // ======= INITIALIZE PARAMS ========
-  const { workspace_id } = useParams();
-
   // ======= INITIALIZE STORE ========
-  const { updateAgent, loadAgents } = agentStore();
+  const { updateAgent } = agentStore();
 
   // ======= FORM FIELDS ========
   const fields = [
@@ -52,11 +48,7 @@ const RenameAgentModal = ({ agent, isOpen, setIsOpen }) => {
     try {
       await updateAgent(agent.id, {
         name: values.name,
-        updated_at: Date.now(),
       });
-
-      // Reload agents to reflect changes
-      await loadAgents(workspace_id);
 
       setIsOpen(false);
       form.reset();

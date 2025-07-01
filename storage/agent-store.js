@@ -113,6 +113,41 @@ const agentStore = create((set, get) => ({
     }
   },
 
+  // ===== UPDATE AGENT =====
+  updateAgent: async (agent_id, updates) => {
+    try {
+      if (!agent_id) throw new Error("Agent ID is required");
+
+      // Update the bot record
+      const updatedBot = await updateDataAction({
+        table_name: "bots",
+        query: {
+          where: { id: agent_id },
+          data: {
+            ...updates,
+            updated_at: Date.now(),
+          },
+        },
+      });
+
+      if (updatedBot?.error) throw new Error(updatedBot?.error);
+
+      // Update state - find and update the agent in the agents array
+      set((state) => ({
+        agents: state.agents.map((agent) =>
+          agent.id === agent_id
+            ? { ...agent, ...updates, updated_at: Date.now() }
+            : agent
+        ),
+      }));
+
+      return updatedBot;
+    } catch (error) {
+      console.error("Error updating agent:", error.message);
+      throw error;
+    }
+  },
+
   // ===== LOAD AGENT =====
   loadAgent: async (agent_id) => {
     try {

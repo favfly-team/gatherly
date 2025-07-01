@@ -9,6 +9,7 @@ import {
   Trash2,
   MessageCircle,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import RenameChatModal from "./rename-chat-modal";
 import DeleteChatModal from "./delete-chat-modal";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { downloadChatPDF } from "@/lib/pdf-generator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 const Chats = () => {
   const { agent_id } = useParams();
@@ -123,6 +125,20 @@ const ChatCardItem = ({ chat }) => {
               title="Download as PDF"
             >
               <FileText />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="[&_svg]:size-5"
+              asChild
+              title="View in Firebase"
+            >
+              <Link
+                target="_blank"
+                href={`https://console.firebase.google.com/project/gatherly-bot/firestore/databases/-default-/data/~2Fchats~2F${chat.id}`}
+              >
+                <ExternalLink />
+              </Link>
             </Button>
 
             {/* // ===== DROPDOWN MENU ===== */}
