@@ -131,12 +131,9 @@ const ChatCardItem = ({ chat }) => {
               size="icon"
               className="[&_svg]:size-5"
               asChild
-              title="View in Firebase"
+              title="View chat"
             >
-              <Link
-                target="_blank"
-                href={`https://console.firebase.google.com/project/gatherly-bot/firestore/databases/-default-/data/~2Fchats~2F${chat.id}`}
-              >
+              <Link target="_blank" href={`/chat/${chat.id}`}>
                 <ExternalLink />
               </Link>
             </Button>
