@@ -94,7 +94,7 @@ export default function ChatContainer({
 
   // ===== RENDER =====
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full mt-14 sm:mt-0 px-3">
       <ScrollArea className="h-full">
         <div className="space-y-4 max-w-screen-md mx-auto py-4">
           <ChatMessage
