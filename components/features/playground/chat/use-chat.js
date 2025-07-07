@@ -2,6 +2,12 @@ import { useCallback } from "react";
 import usePlaygroundStore from "@/storage/playground-store";
 import chatStore from "@/storage/chat-store";
 import { fetchOpenAIChat, generateChatName } from "@/components/actions/openai";
+import {
+  findUniqueDataAction,
+  loadAllDataAction,
+} from "@/components/actions/data-actions";
+import { sendChatCompletionEmail } from "./send-submission-mail";
+import { generatePDF } from "@/lib/pdf-generator";
 
 const DEFAULT_PROMPT = `
 When, and only when, you have collected every piece of information you need from the user, end your reply with the single line:
@@ -107,6 +113,77 @@ export default function useChat() {
                 name: generatedName,
                 updated_at: Date.now(),
               });
+
+              // ===== SEND COMPLETION EMAIL =====
+              const chat = await findUniqueDataAction({
+                table_name: "chats",
+                query: {
+                  where: {
+                    id: currentChatId,
+                  },
+                },
+              });
+
+              const agent = await findUniqueDataAction({
+                table_name: "bots",
+                query: {
+                  where: {
+                    id: chat?.bot_id,
+                  },
+                },
+              });
+
+              const workspace = await findUniqueDataAction({
+                table_name: "workspaces",
+                query: {
+                  where: {
+                    id: agent?.workspace_id,
+                  },
+                },
+              });
+
+              const workspaceMembers = await loadAllDataAction({
+                table_name: "workspace_members",
+                query: {
+                  where: {
+                    workspace_id: workspace?.id,
+                  },
+                },
+              });
+
+              const users = await Promise.all(
+                workspaceMembers.map(async (member) => {
+                  const user = await findUniqueDataAction({
+                    table_name: "users",
+                    query: {
+                      where: {
+                        id: member.user_id,
+                      },
+                    },
+                  });
+                  return user;
+                })
+              );
+
+              const emails = users
+                .filter((user) => user?.email)
+                .map((user) => user?.email);
+
+              // generate pdf
+              // const pdf_content = await generatePDF(finalMessages);
+
+              await sendChatCompletionEmail({
+                recipient_emails: emails,
+                chat_id: currentChatId,
+                workspace_name: workspace.name,
+                agent_name: agent.name,
+                chat_name: generatedName,
+                submitted_on: Date.now(),
+                submission_url: `${process.env.NEXT_PUBLIC_SITE_URL}/chat/${currentChatId}`,
+                // pdf_content: pdf_content,
+              });
+
+              return;
             } catch (error) {
               console.error("Error generating chat name:", error);
               // Keep the existing name if generation fails
